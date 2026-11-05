@@ -1,0 +1,1 @@
+sem erros de console (além do 502 simulado)

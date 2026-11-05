@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>
+<item><book_id>111</book_id><title><![CDATA[Dom Casmurro]]></title><author_name>Machado de Assis</author_name><user_rating>5</user_rating><user_read_at><![CDATA[Sat, 10 Oct 2026 00:00:00 -0700]]></user_read_at><book_published>1899</book_published></item>
+<item><book_id>222</book_id><title><![CDATA[Duna]]></title><author_name>Frank Herbert</author_name><user_rating>4</user_rating><user_read_at><![CDATA[]]></user_read_at><user_date_added><![CDATA[Mon, 05 Jan 2026 08:00:00 -0800]]></user_date_added><book_published>1965</book_published></item>
+<item><book_id>333</book_id><title><![CDATA[Livro sem nota]]></title><author_name>Fulano</author_name><user_rating>0</user_rating><user_read_at><![CDATA[]]></user_read_at></item>
+</channel></rss>
