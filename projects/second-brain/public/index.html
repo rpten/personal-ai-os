@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Second Brain — da ideia ao plano</title>
+<style>
+:root{color-scheme:light dark}
+body{font-family:system-ui,sans-serif;margin:0 auto;max-width:680px;padding:16px;line-height:1.4}
+h1{font-size:1.3em;margin:.2em 0}
+label{display:block;font-weight:600;margin:14px 0 4px}
+textarea{width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #8886;border-radius:8px;background:transparent;color:inherit}
+button{font:inherit;font-weight:600;margin-top:16px;padding:12px 18px;border:0;border-radius:8px;background:#0969da;color:#fff;width:100%}
+pre{white-space:pre-wrap;word-wrap:break-word;border:1px solid #8886;border-radius:8px;padding:12px;font:inherit}
+#erro{color:#d1242f;font-weight:600}
+</style>
+</head>
+<body>
+<h1>🧠 Da ideia ao plano</h1>
+<p>Responda 6 perguntas curtas e receba um plano completo.</p>
+<form id="form"><div id="campos"></div><button type="submit">Gerar plano</button></form>
+<p id="erro" hidden role="alert"></p>
+<section id="saida" hidden><h2>Seu plano</h2><pre id="texto"></pre></section>
+<script src="plano.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
