@@ -37,7 +37,8 @@
     "Origem: second-brain (#1) encerrado; foco em recomendações e memória do gosto de Rafael (Letterboxd, Goodreads etc.).",
     "q2: recomendações com IA; Rafael quer opção gratuita se a complexidade permitir.",
     "q3: IA = Gemini free tier (AI Studio), chave do usuário guardada só no navegador.",
-    "q4: dados via CSV do Letterboxd + Goodreads; usuário escolhe filme/livro ao pedir."
+    "q4: dados via CSV do Letterboxd + Goodreads; usuário escolhe filme/livro ao pedir.",
+    "Esclarecido a Rafael: 'sem servidor' = app estático, dados e chave só no navegador (sem sync entre aparelhos; backup exportável). Q5 aguardando confirmação (C marcada)."
   ],
   "backlog": [
     "YouTube e outras fontes",
