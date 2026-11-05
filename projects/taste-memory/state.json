@@ -12,6 +12,11 @@
         "id": "q1",
         "question": "Uso principal primeiro",
         "answer": "A) O que assistir/ler agora? Recomendações a partir do histórico e notas"
+      },
+      {
+        "id": "q2",
+        "question": "Como as recomendações devem ser geradas?",
+        "answer": "Com IA, preferindo forma gratuita (modelo gratuito, conforme a complexidade necessária)"
       }
     ]
   },
@@ -19,7 +24,8 @@
   "milestones": [],
   "preview_url": null,
   "decisions": [
-    "Origem: second-brain (#1) encerrado; foco em recomendações e memória do gosto de Rafael (Letterboxd, Goodreads etc.)."
+    "Origem: second-brain (#1) encerrado; foco em recomendações e memória do gosto de Rafael (Letterboxd, Goodreads etc.).",
+    "q2: recomendações com IA; Rafael quer opção gratuita se a complexidade permitir."
   ],
   "backlog": [
     "YouTube e outras fontes",
