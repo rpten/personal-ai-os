@@ -12,6 +12,11 @@
         "id": "q1",
         "question": "Qual dor o MVP deve resolver primeiro?",
         "answer": "A) Ideia → projeto estruturado"
+      },
+      {
+        "id": "q2",
+        "question": "Como seria o uso de ponta a ponta na v1?",
+        "answer": "A) Formulário guiado (ideia + ~5 perguntas curtas → plano em texto, copiar/guardar no navegador)"
       }
     ]
   },
@@ -22,7 +27,8 @@
     "Fase atual é só discovery/definição de produto: nada de implementação antes da aprovação do plano.",
     "Personal AI OS é a infraestrutura (fábrica); o Personal Assistant é a aplicação, projeto separado.",
     "Rafael atua como diretor; agentes executam o trabalho operacional.",
-    "MVP ataca a dor 'ideia solta → projeto estruturado com plano e próximos passos' (q1=A)."
+    "MVP ataca a dor 'ideia solta → projeto estruturado com plano e próximos passos' (q1=A).",
+    "v1 é app estático: formulário guiado gera plano em texto, sem IA/backend; guarda no navegador (q2=A)."
   ],
   "backlog": [
     "Integrações: ChatGPT, Claude, Goodreads, Letterboxd, YouTube (nenhuma assumida para o MVP)",
