@@ -1,4 +1,4 @@
-import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize } from "./lib.js";
+import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend } from "./lib.js";
 
 const KEY = "taste-memory:v1";
 const load = () => { try { return { items: [], cfg: {}, lastSync: null, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return { items: [], cfg: {}, lastSync: null }; } };
@@ -24,7 +24,7 @@ ${s.disliked.length ? `<h2>Não curtiu</h2><ul>${s.disliked.map((i) => `<li>${la
 }
 
 function readCfg() {
-  db.cfg = { worker: $("worker").value.trim().replace(/\/+$/, ""), lb: $("lb").value.trim(), gr: $("gr").value.trim() };
+  db.cfg = { gkey: $("gkey").value.trim(), worker: $("worker").value.trim().replace(/\/+$/, ""), lb: $("lb").value.trim(), gr: $("gr").value.trim() };
   save();
 }
 
@@ -66,6 +66,20 @@ async function importCsv(file) {
 
 $("worker").value = db.cfg.worker || ""; if (db.cfg.lb) $("lb").value = db.cfg.lb; if (db.cfg.gr) $("gr").value = db.cfg.gr;
 document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; render(); }));
+if (db.cfg.gkey) $("gkey").value = db.cfg.gkey;
+async function rec() {
+  readCfg(); const m = $("recmsg"), box = $("recs"), btn = $("rec");
+  if (!db.cfg.gkey) { m.className = "err"; m.textContent = "Informe a chave do Gemini em Configurações."; $("settings").open = true; return; }
+  if (!db.items.some((i) => i.type === tab)) { m.className = "err"; m.textContent = "Sincronize ou importe seu histórico antes."; return; }
+  btn.disabled = true; box.innerHTML = ""; m.className = "muted"; m.textContent = "Pensando…";
+  try {
+    const list = await recommend({ key: db.cfg.gkey, list: db.items, type: tab, mood: $("mood").value });
+    box.innerHTML = list.map((s) => `<div class="sug"><b>${esc(s.title)}</b>${s.year ? ` (${s.year})` : ""}${s.author ? ` — ${esc(s.author)}` : ""}<p>${esc(s.why)}</p></div>`).join("");
+    m.className = "ok"; m.textContent = `${list.length} sugestões para ${tab === "film" ? "filmes" : "livros"}.`;
+  } catch (e) { m.className = "err"; m.textContent = e.message; }
+  btn.disabled = false;
+}
+$("rec").addEventListener("click", rec);
 $("sync").addEventListener("click", sync);
 $("csv").addEventListener("change", (e) => e.target.files[0] && importCsv(e.target.files[0]));
 render();

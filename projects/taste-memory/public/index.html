@@ -5,11 +5,17 @@
 <h1>Memória de gosto</h1>
 <nav id="tabs"><button data-t="film" class="on">Filmes</button><button data-t="book">Livros</button></nav>
 <section id="summary" aria-live="polite"></section>
+<section class="card"><h2>O que ver/ler agora?</h2>
+<label>Humor ou pedido (opcional) <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></label>
+<button id="rec" class="primary" style="margin-top:10px">Recomendar 5</button>
+<p id="recmsg" class="muted" aria-live="polite"></p><div id="recs"></div></section>
 <section class="card"><h2>Sincronizar</h2>
 <p id="status" class="muted"></p>
 <button id="sync" class="primary">Sincronizar agora</button>
 <details id="settings"><summary>Configurações</summary>
 <label>URL do Worker <input id="worker" placeholder="https://taste-memory.sua-conta.workers.dev" inputmode="url"></label>
+<label>Chave do Gemini (fica só neste navegador) <input id="gkey" type="password" autocomplete="off" placeholder="AIza…"></label>
+<p class="muted">Grátis em <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a> (login Google, 1 minuto).</p>
 <label>Usuário Letterboxd <input id="lb" value="rafaeldez"></label>
 <label>ID Goodreads <input id="gr" value="196111676" inputmode="numeric"></label>
 <p class="muted">Sem o Worker, use o CSV abaixo. Passo a passo em <code>app/worker/README.md</code>.</p>
