@@ -103,3 +103,27 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml -R "$GITHUB_REPOSITORY" || true
+
+  # Diagnóstico persistente: em caso de falha, o log do job vai para o
+  # branch `diagnostics` (segredos já vêm mascarados pelo GitHub), onde o
+  # agente e as revisões conseguem lê-lo sem acesso à interface do Actions.
+  diagnose:
+    needs: run
+    if: always() && needs.run.result == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Salvar log da execução
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          JOB_ID=$(gh api "repos/$REPO/actions/runs/$RUN_ID/jobs" -q '.jobs[] | select(.name=="run") | .id')
+          gh api "repos/$REPO/actions/jobs/$JOB_ID/logs" > log.txt || echo "log indisponível" > log.txt
+          git init -q d && cd d
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/$REPO"
+          git fetch -q --depth 1 origin diagnostics && git checkout -q FETCH_HEAD || git checkout -q --orphan diagnostics
+          mkdir -p runs && mv ../log.txt "runs/$RUN_ID.txt"
+          ls -t runs | tail -n +31 | sed 's#^#runs/#' | xargs -r git rm -q --cached 2>/dev/null; ls -t runs | tail -n +31 | sed 's#^#runs/#' | xargs -r rm -f
+          git add runs && git -c user.name=factory-bot -c user.email=factory-bot@users.noreply.github.com commit -qm "diagnóstico $RUN_ID"
+          git push -q origin HEAD:diagnostics
