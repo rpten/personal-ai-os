@@ -74,7 +74,9 @@
     "Rafael perguntou sobre dbt/backend. Respondido: dbt não se aplica; proposto Cloudflare Worker + RSS. Bloqueio b2 aberto.",
     "b2: Rafael escolheu A (Cloudflare Worker + RSS; CSV só uma vez para histórico antigo). Aguardando usuários Letterboxd/Goodreads para revisar o plano.",
     "Usuários recebidos: Letterboxd rafaeldez; Goodreads ID 196111676. Plano revisado (M1 inclui Worker+RSS); aguardando nova aprovação.",
-    "Plano aprovado por Rafael; M1 executado (PR #4). Worker não implantado/testado com rede real; fica como ação de Rafael."
+    "Plano aprovado por Rafael; M1 executado (PR #4). Worker não implantado/testado com rede real; fica como ação de Rafael.",
+    "Rafael (via Claude, 05/11): trocar o Cloudflare Worker pela workflow `sync` da fábrica (projects/taste-memory/sync/run.sh busca os RSS de hora em hora e grava JSON em public/data). Sem conta nova. Fazer no M2, junto com o Gemini; remover o Worker e o campo 'URL do Worker'.",
+    "Rafael (05/11): visual do M1 está feio; tratar no M3."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -82,6 +84,6 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Ver os prints do PR #4 e mergear para aprovar o M1 (github.com/rpten/personal-ai-os/pull/4). O deploy do Worker fica com o agente assim que os segredos da Cloudflare existirem."
+    "text": "Ver os prints do PR #4 e mergear para aprovar o M1 (github.com/rpten/personal-ai-os/pull/4). Nenhuma configuração extra necessária."
   }
 }
