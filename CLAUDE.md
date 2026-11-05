@@ -30,7 +30,7 @@ Projetos que contam no limite de WIP: `discovery`, `awaiting_plan_approval`, `ex
 
 O prompt da execução informa o evento, a issue/PR, o slug (se já existir) e a opção marcada.
 
-**Nova ideia (issue aberta com label `ideia`)**
+**Nova ideia (qualquer issue aberta por Rafael, exceto `fabrica`)**
 1. Crie o slug (kebab-case, curto) e `projects/<slug>/state.json` com `status: discovery`.
 2. Adicione o label `proj:<slug>` e `discovery` na issue.
 3. Poste a primeira pergunta do discovery.

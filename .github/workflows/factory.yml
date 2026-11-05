@@ -9,6 +9,11 @@ on:
     types: [closed]
   pull_request_review:
     types: [submitted]
+  # Reconciliação: inicia ideias que ainda não viraram projeto.
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       instrucao:
@@ -31,7 +36,7 @@ concurrency:
 jobs:
   run:
     # Só o dono do repositório aciona a fábrica (o repo pode ser público).
-    if: github.event_name == 'workflow_dispatch' || github.event.sender.login == github.repository_owner
+    if: contains(fromJSON('["push","schedule","workflow_dispatch"]'), github.event_name) || github.event.sender.login == github.repository_owner
     runs-on: ubuntu-latest
     # Teto rígido do job; o agente mira config.run_timeout_minutes (90).
     timeout-minutes: 100
@@ -43,6 +48,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Testes da fábrica
+        run: |
+          pip install --quiet pytest
+          python -m pytest -q factory/tests
 
       - name: Guard (decide se o agente acorda)
         id: guard
@@ -63,7 +73,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Agente (Claude Code)
+        id: agent
         if: steps.guard.outputs.run == 'true'
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         env:
           GH_TOKEN: ${{ github.token }}
@@ -75,6 +87,14 @@ jobs:
           claude_args: >-
             --max-turns ${{ steps.guard.outputs.max_turns }}
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,TodoWrite"
+
+      # Falha visível: job vermelho + comentário na issue se o agente
+      # falhou ou se a ideia não virou projeto.
+      - name: Verificar resultado
+        if: steps.guard.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python factory/scripts/verify.py "${{ steps.agent.outcome }}" "${{ steps.guard.outputs.expect_issue }}"
 
       # Commits feitos com GITHUB_TOKEN não disparam outras workflows;
       # workflow_dispatch é a exceção, então o painel é republicado aqui.

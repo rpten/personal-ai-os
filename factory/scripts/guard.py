@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
-"""Guarda da fábrica: decide se o evento do GitHub deve acordar o agente.
+"""Guarda da fábrica: decide, sem LLM, se o agente deve rodar e para quê.
 
-Responsabilidades (deterministas, sem LLM):
-- só reagir a ações do dono do repositório;
-- ignorar edições que não marcaram uma caixa de opção;
-- aplicar o limite de WIP para novas ideias (label `fila`);
-- localizar o projeto (slug) ligado à issue/PR;
-- montar o prompt da execução.
+Regras:
+- Só ações do dono do repositório acordam o agente.
+- Toda issue aberta pelo dono é uma ideia (sem label obrigatório), exceto
+  as marcadas `fabrica` (melhorias da própria fábrica).
+- Limite de WIP: ideias acima do limite ganham `fila` e um comentário.
+- Reconciliação (push em main, agendamento horário, execução manual):
+  encontra ideias abertas que ainda não viraram projeto e inicia a mais
+  antiga se houver vaga. Nenhuma ideia fica esquecida.
+- Nada é ignorado em silêncio quando envolve uma ideia sua: ou roda,
+  ou entra na fila com comentário.
 
-Saídas em $GITHUB_OUTPUT: run=true|false, slug, prompt.
-FACTORY_DRY=1 imprime comandos `gh` em vez de executá-los (testes).
+Saídas em $GITHUB_OUTPUT: run, slug, prompt, max_turns, expect_issue.
+`expect_issue` = número da ideia que precisa ter virado projeto ao final;
+o passo de verificação da workflow falha (vermelho) e avisa se não virou.
+
+Testes: factory/tests/test_guard.py. Para simular sem rede:
+FACTORY_DRY=1 (não chama gh) e FACTORY_FAKE_ISSUES=<json> (lista de issues).
 """
 import json
 import os
@@ -18,7 +26,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ.get("FACTORY_ROOT", Path(__file__).resolve().parents[2]))
 CONFIG = json.loads((ROOT / "factory/config.json").read_text())
 ACTIVE = {"discovery", "awaiting_plan_approval", "executing", "awaiting_milestone_approval", "blocked"}
 LABELS = {
@@ -27,11 +35,17 @@ LABELS = {
 }
 ACTION_LABELS = {"aprovado", "pausado", "retomar", "encerrado"}
 CHECK_RE = re.compile(r"^\s*[-*] \[([ xX])\] (.+)$", re.M)
+DRY = bool(os.environ.get("FACTORY_DRY"))
+GH_LOG = []  # comandos gh emitidos (inspecionado pelos testes)
+
+
+class Skip(Exception):
+    pass
 
 
 def gh(*args):
-    if os.environ.get("FACTORY_DRY"):
-        print("DRY gh", " ".join(args), file=sys.stderr)
+    GH_LOG.append(list(args))
+    if DRY:
         return ""
     r = subprocess.run(["gh", *args], capture_output=True, text=True)
     if r.returncode != 0:
@@ -39,27 +53,18 @@ def gh(*args):
     return r.stdout
 
 
-def output(**kw):
-    path = os.environ.get("GITHUB_OUTPUT")
-    lines = []
-    for k, v in kw.items():
-        v = str(v)
-        if "\n" in v:
-            lines.append(f"{k}<<__EOF__\n{v}\n__EOF__")
-        else:
-            lines.append(f"{k}={v}")
-    text = "\n".join(lines) + "\n"
-    if path:
-        with open(path, "a") as f:
-            f.write(text)
+def open_issues(repo, owner):
+    """Issues abertas do dono (exclui PRs), da mais antiga para a mais nova."""
+    fake = os.environ.get("FACTORY_FAKE_ISSUES")
+    if fake:
+        data = json.loads(Path(fake).read_text())
     else:
-        print(text)
-
-
-def skip(reason):
-    print(f"skip: {reason}")
-    output(run="false", slug="", prompt="")
-    sys.exit(0)
+        out = gh("issue", "list", "-R", repo, "--state", "open", "--author", owner, "--limit", "100",
+                 "--json", "number,title,body,labels,createdAt")
+        data = json.loads(out or "[]")
+    for i in data:
+        i["labels"] = {l["name"] if isinstance(l, dict) else l for l in i.get("labels", [])}
+    return sorted(data, key=lambda i: i["number"])
 
 
 def load_states():
@@ -72,15 +77,19 @@ def load_states():
     return states
 
 
-def find_slug(states, issue_number=None, branch=None):
+def active_projects(states):
+    return [s for s in states if s.get("status") in ACTIVE]
+
+
+def find_slug(states, number=None, branch=None):
     if branch:
         m = re.match(r"factory/([a-z0-9-]+)/m\d+", branch)
         if m:
             return m.group(1)
     for s in states:
-        if issue_number and s.get("issue") == issue_number:
+        if number and s.get("issue") == number:
             return s["slug"]
-        if issue_number and any(ms.get("pr") == issue_number for ms in s.get("milestones", [])):
+        if number and any(ms.get("pr") == number for ms in s.get("milestones", [])):
             return s["slug"]
     return ""
 
@@ -91,100 +100,126 @@ def newly_checked(before, after):
     return [t.strip() for c, t in CHECK_RE.findall(after or "") if c.lower() == "x" and t.strip() not in old]
 
 
-def main():
-    event_name = os.environ.get("GITHUB_EVENT_NAME", "")
-    event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
-    owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+def enqueue(repo, number, states, already_queued=False):
+    if already_queued:
+        return
+    gh("issue", "edit", str(number), "--add-label", "ideia", "--add-label", "fila", "-R", repo)
+    names = ", ".join(s["title"] for s in active_projects(states)) or "-"
+    gh("issue", "comment", str(number), "-R", repo, "--body",
+       f"📥 Ideia recebida e na fila. Limite de {CONFIG['wip_limit']} projeto(s) ativo(s) atingido ({names}). "
+       "Começa sozinha quando houver vaga.")
+
+
+def start_idea(repo, issue):
+    gh("issue", "edit", str(issue["number"]), "--add-label", "ideia", "--remove-label", "fila", "-R", repo)
+    return (f"Nova ideia na issue #{issue['number']}: {issue.get('title')}\n\n{issue.get('body') or ''}\n\n"
+            "Inicie o discovery desta ideia conforme o protocolo.")
+
+
+def reconcile(repo, owner, states):
+    """Inicia a ideia pendente mais antiga, se houver vaga. Retorna (detalhe, issue) ou levanta Skip."""
+    linked = {s.get("issue") for s in states}
+    pending = [i for i in open_issues(repo, owner) if i["number"] not in linked and "fabrica" not in i["labels"]]
+    if not pending:
+        raise Skip("nenhuma ideia pendente")
+    if len(active_projects(states)) >= CONFIG["wip_limit"]:
+        for i in pending:
+            enqueue(repo, i["number"], states, already_queued="fila" in i["labels"])
+        raise Skip(f"{len(pending)} ideia(s) pendente(s), WIP cheio")
+    first = pending[0]
+    return start_idea(repo, first), first["number"]
+
+
+def decide(event_name, event, repo, owner, states):
+    """Retorna (detail, slug, expect_issue). Levanta Skip para não rodar."""
     sender = event.get("sender", {}).get("login", "")
-    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    automatic = event_name in ("push", "schedule", "workflow_dispatch")
+    if CONFIG.get("owner_only", True) and not automatic and sender != owner:
+        raise Skip(f"ator {sender} não é o dono")
 
-    if CONFIG.get("owner_only", True) and sender != owner and event_name != "workflow_dispatch":
-        skip(f"ator {sender} não é o dono")
-
-    for name, color in LABELS.items():
-        gh("label", "create", name, "--color", color, "--force", "-R", repo)
-
-    states = load_states()
     action = event.get("action", "")
     issue = event.get("issue") or {}
     pr = event.get("pull_request") or {}
     number = issue.get("number") or pr.get("number")
     branch = pr.get("head", {}).get("ref")
     if issue.get("pull_request") and not branch:
-        # comentário em PR: o nome do branch não vem no evento
         branch = gh("pr", "view", str(number), "-R", repo, "--json", "headRefName", "-q", ".headRefName").strip() or None
     slug = find_slug(states, number, branch)
     state = next((s for s in states if s["slug"] == slug), None)
-    detail = ""
+
+    if automatic:
+        instr = (event.get("inputs") or {}).get("instrucao")
+        if instr:
+            return instr, "", None
+        detail, n = reconcile(repo, owner, states)
+        return detail, "", n
 
     if event_name == "issues" and action == "opened":
         labels = {l["name"] for l in issue.get("labels", [])}
-        if "ideia" not in labels and "fabrica" not in labels:
-            skip("issue sem label ideia/fabrica")
-        if "ideia" in labels:
-            active = [s for s in states if s.get("status") in ACTIVE]
-            if len(active) >= CONFIG["wip_limit"]:
-                gh("issue", "edit", str(number), "--add-label", "fila", "-R", repo)
-                names = ", ".join(s["title"] for s in active)
-                gh("issue", "comment", str(number), "-R", repo, "--body",
-                   f"📥 Ideia na fila. Limite de {CONFIG['wip_limit']} projeto(s) ativo(s) atingido ({names}). "
-                   "Começa automaticamente quando houver vaga.")
-                skip("WIP cheio, ideia enfileirada")
-        detail = f"Nova issue #{number}: {issue.get('title')}\n\n{issue.get('body') or ''}"
+        if "fabrica" in labels:
+            return f"Melhoria da fábrica, issue #{number}: {issue.get('title')}\n\n{issue.get('body') or ''}", "", None
+        if len(active_projects(states)) >= CONFIG["wip_limit"]:
+            enqueue(repo, number, states)
+            raise Skip("WIP cheio, ideia enfileirada")
+        return start_idea(repo, {**issue, "labels": labels}), "", number
 
-    elif event_name == "issues" and action == "labeled":
+    if event_name == "issues" and action == "labeled":
         label = event.get("label", {}).get("name", "")
         if label not in ACTION_LABELS:
-            skip(f"label {label} sem ação")
+            raise Skip(f"label {label} sem ação")
         if not slug:
-            skip("label em issue sem projeto")
+            raise Skip("label em issue sem projeto")
         if label == "retomar" and state and state.get("status") == "paused":
-            active = [s for s in states if s.get("status") in ACTIVE]
-            if len(active) >= CONFIG["wip_limit"]:
+            if len(active_projects(states)) >= CONFIG["wip_limit"]:
                 gh("issue", "edit", str(number), "--remove-label", "retomar", "--add-label", "fila", "-R", repo)
-                skip("WIP cheio, retomada enfileirada")
-        detail = f"Rafael aplicou o label `{label}` na issue #{number}."
+                raise Skip("WIP cheio, retomada enfileirada")
+        return f"Rafael aplicou o label `{label}` na issue #{number}.", slug, None
 
-    elif event_name == "issue_comment" and action == "edited":
+    if event_name == "issue_comment" and action == "edited":
         body = event.get("comment", {}).get("body", "")
         before = event.get("changes", {}).get("body", {}).get("from", "")
         if "<!-- factory:" not in body:
-            skip("edição fora de bloco da fábrica")
+            raise Skip("edição fora de bloco da fábrica")
         checked = newly_checked(before, body)
         if not checked:
-            skip("nenhuma opção nova marcada")
+            raise Skip("nenhuma opção nova marcada")
+        if not slug:
+            raise Skip("bloco marcado em item sem projeto")
         marker = re.search(r"<!-- factory:(\S+) ([^>]*)-->", body)
-        detail = (f"Rafael marcou no bloco `{marker.group(1)} {marker.group(2).strip()}` (#{number}): "
-                  + "; ".join(checked) + f"\n\nTexto completo do bloco:\n{body}")
-        if not slug:
-            skip("bloco marcado em item sem projeto")
+        return (f"Rafael marcou no bloco `{marker.group(1)} {marker.group(2).strip()}` (#{number}): "
+                + "; ".join(checked) + f"\n\nTexto completo do bloco:\n{body}"), slug, None
 
-    elif event_name == "issue_comment" and action == "created":
+    if event_name == "issue_comment" and action == "created":
         if not slug:
-            skip("comentário em item sem projeto")
-        detail = f"Rafael comentou em #{number}:\n\n{event['comment']['body']}"
+            # comentário numa ideia que ainda não virou projeto: inicia-a
+            if not issue.get("pull_request") and "fabrica" not in {l["name"] for l in issue.get("labels", [])}:
+                if len(active_projects(states)) >= CONFIG["wip_limit"]:
+                    enqueue(repo, number, states, already_queued="fila" in {l["name"] for l in issue.get("labels", [])})
+                    raise Skip("WIP cheio, ideia enfileirada")
+                return start_idea(repo, issue) + f"\n\nComentário de Rafael:\n{event['comment']['body']}", "", number
+            raise Skip("comentário em item sem projeto")
+        return f"Rafael comentou em #{number}:\n\n{event['comment']['body']}", slug, None
 
-    elif event_name == "pull_request" and action == "closed":
+    if event_name == "pull_request" and action == "closed":
         if not pr.get("merged"):
-            skip("PR fechado sem merge")
+            raise Skip("PR fechado sem merge")
         if not slug:
-            skip("PR fora da fábrica")
-        detail = f"Rafael mergeou o PR #{number} (branch {branch}) = marco aprovado."
+            raise Skip("PR fora da fábrica")
+        return f"Rafael mergeou o PR #{number} (branch {branch}) = marco aprovado.", slug, None
 
-    elif event_name == "pull_request_review":
+    if event_name == "pull_request_review":
         if not slug:
-            skip("review fora da fábrica")
+            raise Skip("review fora da fábrica")
         review = event.get("review", {})
-        detail = f"Rafael revisou o PR #{number} ({review.get('state')}):\n\n{review.get('body') or ''}"
+        return f"Rafael revisou o PR #{number} ({review.get('state')}):\n\n{review.get('body') or ''}", slug, None
 
-    elif event_name == "workflow_dispatch":
-        detail = (event.get("inputs") or {}).get("instrucao") or "Execução manual: verifique o estado de todos os projetos e avance o que estiver parado."
+    raise Skip(f"evento {event_name}/{action} não tratado")
 
-    else:
-        skip(f"evento {event_name}/{action} não tratado")
 
+def build_prompt(repo, event_name, action, slug, detail, states):
+    state = next((s for s in states if s["slug"] == slug), None)
     state_txt = json.dumps(state, ensure_ascii=False, indent=2) if state else "(projeto ainda não existe)"
-    prompt = f"""Você está operando a fábrica de projetos. Siga estritamente o CLAUDE.md da raiz do repositório.
+    return f"""Você está operando a fábrica de projetos. Siga estritamente o CLAUDE.md da raiz do repositório.
 
 Repositório: {repo}
 Evento: {event_name}/{action}
@@ -197,7 +232,39 @@ Estado atual do projeto:
 {state_txt}
 
 Faça o que o protocolo manda para esse evento, comunique-se com Rafael pela issue/PR usando `gh`, e termine com o state.json atualizado e commitado em main."""
-    output(run="true", slug=slug, prompt=prompt, max_turns=CONFIG["max_turns"])
+
+
+def write_output(**kw):
+    lines = []
+    for k, v in kw.items():
+        v = "" if v is None else str(v)
+        lines.append(f"{k}<<__EOF__\n{v}\n__EOF__" if "\n" in v else f"{k}={v}")
+    text = "\n".join(lines) + "\n"
+    path = os.environ.get("GITHUB_OUTPUT")
+    if path:
+        with open(path, "a") as f:
+            f.write(text)
+    else:
+        print(text)
+
+
+def main():
+    event_name = os.environ.get("GITHUB_EVENT_NAME", "")
+    event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+    owner = os.environ.get("GITHUB_REPOSITORY_OWNER", "")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    for name, color in LABELS.items():
+        gh("label", "create", name, "--color", color, "--force", "-R", repo)
+    states = load_states()
+    try:
+        detail, slug, expect = decide(event_name, event, repo, owner, states)
+    except Skip as e:
+        print(f"skip: {e}")
+        write_output(run="false", slug="", prompt="", max_turns=CONFIG["max_turns"], expect_issue="")
+        return
+    prompt = build_prompt(repo, event_name, event.get("action", ""), slug, detail, states)
+    print(f"run: slug={slug or '(novo)'} expect_issue={expect or '-'}")
+    write_output(run="true", slug=slug, prompt=prompt, max_turns=CONFIG["max_turns"], expect_issue=expect or "")
 
 
 if __name__ == "__main__":

@@ -21,13 +21,15 @@ Sem servidor próprio, sem banco, sem segundo app para manter.
 
 ## Uso diário
 
-1. **Nova ideia:** Issues → New → "Nova ideia". Escreva poucas linhas.
+1. **Nova ideia:** abra qualquer issue (ou use "➕ Nova ideia" no painel). Escreva poucas linhas. Sem labels.
 2. **Discovery:** responda marcando uma caixa em cada pergunta (ou comente, se for "Outro").
 3. **Plano:** marque "Aprovar" (ou aplique o label `aprovado`).
 4. **Marcos:** veja os prints no PR e mergeie. Para ajustes, marque "Pedir ajuste" e comente.
 5. **Painel:** https://rpten.github.io/personal-ai-os/.
 
 Limite padrão: 1 projeto ativo (`factory/config.json`). Ideias extras entram na fila e começam sozinhas.
+
+Nada fica parado em silêncio: a fábrica revisa a cada hora (e a cada mudança no repo) se alguma ideia ainda não começou. Se uma execução falhar, o job fica vermelho, o GitHub te notifica e a issue recebe um comentário com o motivo.
 
 ## Configuração única
 
