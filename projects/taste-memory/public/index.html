@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Memória de gosto</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<h1>Memória de gosto</h1>
+<nav id="tabs"><button data-t="film" class="on">Filmes</button><button data-t="book">Livros</button></nav>
+<section id="summary" aria-live="polite"></section>
+<section class="card"><h2>Sincronizar</h2>
+<p id="status" class="muted"></p>
+<button id="sync" class="primary">Sincronizar agora</button>
+<details id="settings"><summary>Configurações</summary>
+<label>URL do Worker <input id="worker" placeholder="https://taste-memory.sua-conta.workers.dev" inputmode="url"></label>
+<label>Usuário Letterboxd <input id="lb" value="rafaeldez"></label>
+<label>ID Goodreads <input id="gr" value="196111676" inputmode="numeric"></label>
+<p class="muted">Sem o Worker, use o CSV abaixo. Passo a passo em <code>app/worker/README.md</code>.</p>
+</details></section>
+<section class="card"><h2>Importar CSV (uma vez)</h2>
+<p class="muted">Letterboxd: <i>ratings.csv</i> do export. Goodreads: export da biblioteca. O tipo é detectado sozinho.</p>
+<input type="file" id="csv" accept=".csv,text/csv"><p id="csvmsg" class="muted"></p></section>
+</main><script type="module" src="app.js"></script></body></html>
