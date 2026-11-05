@@ -7,7 +7,13 @@
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
   "discovery": {
-    "answers": []
+    "answers": [
+      {
+        "id": "q1",
+        "question": "Uso principal primeiro",
+        "answer": "A) O que assistir/ler agora? Recomendações a partir do histórico e notas"
+      }
+    ]
   },
   "current_milestone": null,
   "milestones": [],
