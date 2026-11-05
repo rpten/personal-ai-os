@@ -70,7 +70,8 @@
     "Rafael pediu sincronização automática de Letterboxd/Goodreads, sem baixar CSV, e sugeriu backend. Bloqueio b1: backend/serviço externo exige decisão.",
     "Rafael pediu ajuste no plano: não quer baixar/atualizar CSV; quer sincronização automática (talvez backend).",
     "Bloqueio b1 aberto (A Cloudflare Workers + CSV único ⭐ / B só RSS / C estático+CSV); plano será revisado após resposta.",
-    "b1: Rafael marcou 'Outro'; aguardando comentário com a decisão (e usuários Letterboxd/Goodreads se A/B)."
+    "b1: Rafael marcou 'Outro'; aguardando comentário com a decisão (e usuários Letterboxd/Goodreads se A/B).",
+    "Rafael perguntou sobre dbt/backend. Respondido: dbt não se aplica; proposto Cloudflare Worker + RSS. Bloqueio b2 aberto."
   ],
   "backlog": [
     "YouTube e outras fontes",
