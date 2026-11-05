@@ -64,5 +64,9 @@
     "Integrações: ChatGPT, Claude, Goodreads, Letterboxd, YouTube (nenhuma assumida para o MVP)",
     "Recomendações de livros/filmes/séries/conteúdos/atividades",
     "Projetos de aprendizado de idiomas baseados em interesses"
-  ]
+  ],
+  "next_action": {
+    "owner": "agente",
+    "text": "Encerrado. Substituído por taste-memory (issue #3)."
+  }
 }

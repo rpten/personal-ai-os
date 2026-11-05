@@ -79,5 +79,9 @@
   "backlog": [
     "YouTube e outras fontes",
     "Projetos de aprendizado de idiomas baseados em interesses"
-  ]
+  ],
+  "next_action": {
+    "owner": "rafael",
+    "text": "Ver os prints do PR #4 e mergear para aprovar o M1 (github.com/rpten/personal-ai-os/pull/4). O deploy do Worker fica com o agente assim que os segredos da Cloudflare existirem."
+  }
 }
