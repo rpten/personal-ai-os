@@ -25,11 +25,13 @@ with sync_playwright() as p:
         ctx = b.new_context(viewport=vp); pg = ctx.new_page()
         pg.on("pageerror", lambda e: errors.append(str(e)))
         pg.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
+        pg.route("**/data/*.xml*", lambda r: r.fulfill(status=200, body=(fx / ("letterboxd.xml" if "letterboxd" in r.request.url else "goodreads.xml")).read_text(), headers={"Content-Type": "application/xml"}))
         pg.route("https://generativelanguage.googleapis.com/**", gem)
         pg.goto(base)
         pg.click("#rec"); assert "chave do Gemini" in pg.inner_text("#recmsg")
         pg.fill("#gkey", "AIzaFAKE"); pg.click("#rec"); assert "histórico antes" in pg.inner_text("#recmsg")
         pg.set_input_files("#csv", str(fx / "ratings.csv")); pg.wait_for_selector("text=Filmes: +3 novos")
+        pg.click("#sync"); pg.wait_for_selector("text=Letterboxd: +")
         pg.fill("#mood", "algo leve"); pg.click("#rec"); pg.wait_for_selector(".sug")
         assert pg.locator(".sug").count() == 5
         assert "algo leve" in prompts[-1] and "Parasita" in prompts[-1]

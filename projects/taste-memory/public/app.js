@@ -12,7 +12,7 @@ const label = (i) => `${esc(i.title)}${i.year && i.type === "film" ? ` (${i.year
 function render() {
   const s = summarize(db.items, tab), kind = tab === "film" ? "filmes" : "livros";
   $("summary").innerHTML = s.total === 0
-    ? `<div class="card"><p>Nenhum dos seus ${kind} ainda. Sincronize ou importe o CSV abaixo.</p></div>`
+    ? `<div class="card"><p>Nenhum dos seus ${kind} ainda. Atualize ou importe o CSV abaixo.</p></div>`
     : `<div class="card"><div class="stats"><div class="stat"><b>${s.total}</b>${kind}</div><div class="stat"><b>${s.rated}</b>com nota</div><div class="stat"><b>${s.average ?? "—"}</b>média</div></div>
 <div class="bars">${[5, 4, 3, 2, 1].map((n) => `<div class="bar"><span>${n}★</span><i style="width:${s.rated ? (s.histogram[n] / s.rated) * 70 : 0}%"></i><span>${s.histogram[n]}</span></div>`).join("")}</div>
 ${s.top.length ? `<h2>Mais gosta (nota ≥ 4): ${tab === "film" ? "décadas" : "autores"}</h2><ul>${s.top.map(([k, n]) => `<li>${esc(k)} · ${n}</li>`).join("")}</ul>` : ""}
@@ -24,7 +24,7 @@ ${s.disliked.length ? `<h2>Não curtiu</h2><ul>${s.disliked.map((i) => `<li>${la
 }
 
 function readCfg() {
-  db.cfg = { gkey: $("gkey").value.trim(), worker: $("worker").value.trim().replace(/\/+$/, ""), lb: $("lb").value.trim(), gr: $("gr").value.trim() };
+  db.cfg = { gkey: $("gkey").value.trim() };
   save();
 }
 
@@ -35,20 +35,15 @@ async function fetchXml(url) {
 }
 
 async function sync() {
-  readCfg();
-  const { worker, lb, gr } = db.cfg, st = $("status");
-  if (!worker) { st.className = "err"; st.textContent = "Informe a URL do Worker em Configurações (ou importe o CSV)."; $("settings").open = true; return; }
-  st.className = "muted"; st.textContent = "Sincronizando…";
-  const jobs = [
-    lb && ["Letterboxd", `${worker}/letterboxd?user=${encodeURIComponent(lb)}`, parseLetterboxdRss],
-    gr && ["Goodreads", `${worker}/goodreads?id=${encodeURIComponent(gr)}`, parseGoodreadsRss],
-  ].filter(Boolean);
+  const st = $("status");
+  st.className = "muted"; st.textContent = "Atualizando…";
+  const jobs = [["Letterboxd", "./data/letterboxd.xml", parseLetterboxdRss], ["Goodreads", "./data/goodreads.xml", parseGoodreadsRss]];
   const msgs = []; let ok = 0;
   for (const [name, url, parse] of jobs) {
     try {
-      const r = merge(db.items, parse(await fetchXml(url)));
+      const r = merge(db.items, parse(await fetchXml(url + "?t=" + Date.now())));
       db.items = r.items; ok++; msgs.push(`${name}: +${r.added} novos, ${r.updated} atualizados`);
-    } catch (e) { msgs.push(`${name}: falhou (${e.message}); use o CSV como alternativa`); }
+    } catch (e) { msgs.push(`${name}: sem dados coletados ainda (${e.message}); use o CSV como alternativa`); }
   }
   if (ok) db.lastSync = new Date().toLocaleString("pt-BR");
   save(); render();
@@ -64,7 +59,6 @@ async function importCsv(file) {
   msg.className = "ok"; msg.textContent = `${type === "film" ? "Filmes" : "Livros"}: +${r.added} novos, ${r.updated} atualizados.`;
 }
 
-$("worker").value = db.cfg.worker || ""; if (db.cfg.lb) $("lb").value = db.cfg.lb; if (db.cfg.gr) $("gr").value = db.cfg.gr;
 document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; render(); }));
 if (db.cfg.gkey) $("gkey").value = db.cfg.gkey;
 async function rec() {

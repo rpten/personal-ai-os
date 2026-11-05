@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { parseLetterboxdRss, parseGoodreadsRss, parseCsv, parseCsvHistory, merge, summarize } from "../../public/lib.js";
-import worker, { buildTarget } from "../worker/worker.js";
 
 const fx = (n) => readFileSync(new URL(`../fixtures/${n}`, import.meta.url), "utf8");
 
@@ -64,16 +63,6 @@ test("resumo: média, histograma, favoritos e década", () => {
   assert.equal(summarize([], "book").average, null);
 });
 
-test("Worker: valida rotas e parâmetros", async () => {
-  assert.equal(buildTarget("https://w.dev/letterboxd?user=rafaeldez"), "https://letterboxd.com/rafaeldez/rss/");
-  assert.match(buildTarget("https://w.dev/goodreads?id=196111676"), /list_rss\/196111676\?shelf=read/);
-  assert.equal(buildTarget("https://w.dev/letterboxd?user=../etc"), null);
-  assert.equal(buildTarget("https://w.dev/goodreads?id=abc"), null);
-  assert.equal(buildTarget("https://w.dev/outra"), null);
-  const r = await worker.fetch(new Request("https://w.dev/outra", { headers: { Origin: "https://rpten.github.io" } }));
-  assert.equal(r.status, 400);
-  assert.equal(r.headers.get("Access-Control-Allow-Origin"), "https://rpten.github.io");
-});
 
 import { buildPrompt, parseSuggestions, recommend, geminiError } from "../../public/lib.js";
 const hist = () => [...parseLetterboxdRss(fx("letterboxd.xml")), ...parseGoodreadsRss(fx("goodreads.xml"))];
