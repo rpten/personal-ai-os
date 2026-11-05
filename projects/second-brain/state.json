@@ -2,8 +2,8 @@
   "slug": "second-brain",
   "title": "Personal Assistant / Second Brain",
   "issue": 1,
-  "status": "awaiting_milestone_approval",
-  "previous_status": "awaiting_plan_approval",
+  "status": "closed",
+  "previous_status": "awaiting_milestone_approval",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
   "discovery": {
@@ -25,7 +25,7 @@
       }
     ]
   },
-  "current_milestone": 1,
+  "current_milestone": null,
   "milestones": [
     {
       "n": 1,
@@ -57,7 +57,8 @@
     "MVP ataca a dor 'ideia solta → projeto estruturado com plano e próximos passos' (q1=A).",
     "v1 é app estático: formulário guiado gera plano em texto, sem IA/backend; guarda no navegador (q2=A).",
     "Plano gerado inclui: resumo, menor versão útil, marcos, próximo passo, riscos, backlog e checklist de pronto; por regras/modelos, sem IA (q3=B).",
-    "Plano aprovado por Rafael; M1 executado (PR #2). Stack: HTML/JS estático sem build, gerador por regras em public/plano.js, testes com node:test."
+    "Plano aprovado por Rafael; M1 executado (PR #2). Stack: HTML/JS estático sem build, gerador por regras em public/plano.js, testes com node:test.",
+    "Encerrado por Rafael: 'ideia → plano' já é o papel da fábrica. M1 (PR #2) fechado sem merge. Novo foco: recomendações e memória de gosto (Letterboxd, Goodreads etc.) → projeto taste-memory."
   ],
   "backlog": [
     "Integrações: ChatGPT, Claude, Goodreads, Letterboxd, YouTube (nenhuma assumida para o MVP)",

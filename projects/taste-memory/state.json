@@ -1,0 +1,22 @@
+{
+  "slug": "taste-memory",
+  "title": "Memória de gosto + recomendações",
+  "issue": 3,
+  "status": "discovery",
+  "previous_status": null,
+  "created_at": "2026-11-05",
+  "updated_at": "2026-11-05",
+  "discovery": {
+    "answers": []
+  },
+  "current_milestone": null,
+  "milestones": [],
+  "preview_url": null,
+  "decisions": [
+    "Origem: second-brain (#1) encerrado; foco em recomendações e memória do gosto de Rafael (Letterboxd, Goodreads etc.)."
+  ],
+  "backlog": [
+    "YouTube e outras fontes",
+    "Projetos de aprendizado de idiomas baseados em interesses"
+  ]
+}
