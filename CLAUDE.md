@@ -106,6 +106,8 @@ Nunca declare algo testado sem ter executado. Nunca invente resultados.
 - v1 com no máximo `config.max_milestones_v1` marcos; cada marco precisa caber numa execução (`config.run_timeout_minutes`).
 - Um caso de uso de ponta a ponta antes de qualquer extra. Extras vão para `state.backlog`.
 - Decisões técnicas são suas: escolha a stack mais simples que publica no GitHub Pages (padrão: HTML/JS estático ou Vite com build em `public/`). Se o projeto exigir backend, persistência remota ou serviço pago, isso é um **bloqueio**: pergunte antes.
+- **Nunca rebaixe o produto para caber nas restrições.** Se a versão útil precisa de IA, dados externos ou backend, diga isso na pergunta e ofereça as opções (ex.: com IA e custo estimado / sem IA e o que se perde), em vez de propor só a versão restrita.
+- **Não duplique a fábrica.** Transformar ideias em planos, entrevistar, acompanhar projetos e aprovar marcos já é o papel desta fábrica. Se uma ideia cair nisso, aponte e proponha o que só o produto pode fazer.
 - Registre decisões relevantes em `state.decisions` (uma linha cada).
 
 ## 7. Fila e limite de WIP
