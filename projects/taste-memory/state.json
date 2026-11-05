@@ -69,7 +69,8 @@
     "q5: fluxo com humor opcional, 5 sugestões e feedback (já vi/li, quero, não curto). Plano de 3 marcos proposto.",
     "Rafael pediu sincronização automática de Letterboxd/Goodreads, sem baixar CSV, e sugeriu backend. Bloqueio b1: backend/serviço externo exige decisão.",
     "Rafael pediu ajuste no plano: não quer baixar/atualizar CSV; quer sincronização automática (talvez backend).",
-    "Bloqueio b1 aberto (A Cloudflare Workers + CSV único ⭐ / B só RSS / C estático+CSV); plano será revisado após resposta."
+    "Bloqueio b1 aberto (A Cloudflare Workers + CSV único ⭐ / B só RSS / C estático+CSV); plano será revisado após resposta.",
+    "b1: Rafael marcou 'Outro'; aguardando comentário com a decisão (e usuários Letterboxd/Goodreads se A/B)."
   ],
   "backlog": [
     "YouTube e outras fontes",
