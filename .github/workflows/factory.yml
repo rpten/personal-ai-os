@@ -60,41 +60,64 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python factory/scripts/guard.py
 
-      - name: Navegador para QA
-        if: steps.guard.outputs.run == 'true'
-        run: |
-          pip install --quiet playwright
-          python -m playwright install --with-deps chromium
-
       - name: Configurar git
         if: steps.guard.outputs.run == 'true'
         run: |
           git config user.name "factory-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+      # Claude Code CLI direto (sem ação intermediária): saída completa
+      # gravada em agent.jsonl para diagnóstico. O navegador de QA não é
+      # instalado aqui; o agente usa o Chrome do runner só quando precisa.
       - name: Agente (Claude Code)
         id: agent
         if: steps.guard.outputs.run == 'true'
         continue-on-error: true
-        uses: anthropics/claude-code-action@v1
+        timeout-minutes: 92
         env:
           GH_TOKEN: ${{ github.token }}
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ github.token }}
-          prompt: ${{ steps.guard.outputs.prompt }}
-          claude_args: >-
-            --max-turns ${{ steps.guard.outputs.max_turns }}
-            --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,TodoWrite"
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          SECRET_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PROMPT: ${{ steps.guard.outputs.prompt }}
+          MAX_TURNS: ${{ steps.guard.outputs.max_turns }}
+        run: |
+          set -o pipefail
+          if [ -n "$SECRET_API_KEY" ]; then export ANTHROPIC_API_KEY="$SECRET_API_KEY"; fi
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ] && [ -z "$SECRET_API_KEY" ]; then
+            echo "Nenhum segredo de autenticação configurado (CLAUDE_CODE_OAUTH_TOKEN)." | tee "$RUNNER_TEMP/agent.jsonl"; exit 1
+          fi
+          npm install -g --silent @anthropic-ai/claude-code
+          claude --version
+          claude -p "$PROMPT" \
+            --max-turns "$MAX_TURNS" \
+            --permission-mode acceptEdits \
+            --allowedTools "Bash" "Read" "Write" "Edit" "Glob" "Grep" "WebFetch" "WebSearch" "TodoWrite" \
+            --output-format stream-json --verbose 2>&1 | tee "$RUNNER_TEMP/agent.jsonl"
 
       # Falha visível: job vermelho + comentário na issue se o agente
       # falhou ou se a ideia não virou projeto.
       - name: Verificar resultado
+        id: verify
         if: steps.guard.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python factory/scripts/verify.py "${{ steps.agent.outcome }}" "${{ steps.guard.outputs.expect_issue }}"
+
+      # Diagnóstico persistente: em falha, a saída do agente vai para o
+      # branch `diagnostics` (legível sem a interface do Actions).
+      - name: Salvar diagnóstico
+        if: failure() && steps.guard.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          cp "$RUNNER_TEMP/agent.jsonl" /tmp/agent.jsonl 2>/dev/null || echo "agente não gerou saída" > /tmp/agent.jsonl
+          git init -q /tmp/d && cd /tmp/d
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          if git fetch -q --depth 1 origin diagnostics; then git checkout -q FETCH_HEAD; else git checkout -q --orphan diagnostics; fi
+          mkdir -p runs && cp /tmp/agent.jsonl "runs/$RUN_ID.jsonl"
+          git add runs && git -c user.name=factory-bot -c user.email=factory-bot@users.noreply.github.com commit -qm "diagnóstico $RUN_ID"
+          git push -q origin HEAD:diagnostics
 
       # Commits feitos com GITHUB_TOKEN não disparam outras workflows;
       # workflow_dispatch é a exceção, então o painel é republicado aqui.
@@ -103,27 +126,3 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml -R "$GITHUB_REPOSITORY" || true
-
-  # Diagnóstico persistente: em caso de falha, o log do job vai para o
-  # branch `diagnostics` (segredos já vêm mascarados pelo GitHub), onde o
-  # agente e as revisões conseguem lê-lo sem acesso à interface do Actions.
-  diagnose:
-    needs: run
-    if: always() && needs.run.result == 'failure'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Salvar log da execução
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          JOB_ID=$(gh api "repos/$REPO/actions/runs/$RUN_ID/jobs" -q '.jobs[] | select(.name=="run") | .id')
-          gh api "repos/$REPO/actions/jobs/$JOB_ID/logs" > log.txt || echo "log indisponível" > log.txt
-          git init -q d && cd d
-          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/$REPO"
-          git fetch -q --depth 1 origin diagnostics && git checkout -q FETCH_HEAD || git checkout -q --orphan diagnostics
-          mkdir -p runs && mv ../log.txt "runs/$RUN_ID.txt"
-          ls -t runs | tail -n +31 | sed 's#^#runs/#' | xargs -r git rm -q --cached 2>/dev/null; ls -t runs | tail -n +31 | sed 's#^#runs/#' | xargs -r rm -f
-          git add runs && git -c user.name=factory-bot -c user.email=factory-bot@users.noreply.github.com commit -qm "diagnóstico $RUN_ID"
-          git push -q origin HEAD:diagnostics

@@ -31,7 +31,11 @@ def main():
     base = f"http://127.0.0.1:{srv.server_port}"
     logs = []
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        try:
+            browser = p.chromium.launch()
+        except Exception:
+            # runners do GitHub já têm Google Chrome instalado
+            browser = p.chromium.launch(channel="chrome")
         for label, viewport in (("desktop", {"width": 1280, "height": 800}), ("mobile", {"width": 390, "height": 844})):
             page = browser.new_page(viewport=viewport)
             page.on("console", lambda m: logs.append(f"[{m.type}] {m.text}") if m.type in ("error", "warning") else None)

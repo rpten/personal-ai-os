@@ -95,7 +95,7 @@ Bloqueio (precisa de decisão para continuar): status `blocked`, pergunta no for
 Rafael não revisa código. Ele aprova por evidência. Todo marco precisa de:
 
 - Testes automatizados relevantes rodando verdes (inclua a saída resumida).
-- Para UI: abrir o app num navegador headless (`python factory/scripts/capture.py`) e salvar prints dos fluxos do marco em `evidence/m<N>/`, incluindo largura de celular.
+- Para UI: `pip install playwright` (sem `playwright install`: o script usa o Chrome já instalado no runner), depois abrir o app num navegador headless (`python factory/scripts/capture.py`) e salvar prints dos fluxos do marco em `evidence/m<N>/`, incluindo largura de celular.
 - Lista honesta: o que foi testado, o que não foi, limitações conhecidas.
 - Link de preview: após o merge, o app publicado fica em `https://<owner>.github.io/<repo>/<slug>/`. Antes do merge, os prints são a evidência.
 
