@@ -2,8 +2,8 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "awaiting_plan_approval",
-  "previous_status": null,
+  "status": "blocked",
+  "previous_status": "awaiting_plan_approval",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
   "discovery": {
@@ -66,7 +66,8 @@
     "q3: IA = Gemini free tier (AI Studio), chave do usuário guardada só no navegador.",
     "q4: dados via CSV do Letterboxd + Goodreads; usuário escolhe filme/livro ao pedir.",
     "Esclarecido a Rafael: 'sem servidor' = app estático, dados e chave só no navegador (sem sync entre aparelhos; backup exportável).",
-    "q5: fluxo com humor opcional, 5 sugestões e feedback (já vi/li, quero, não curto). Plano de 3 marcos proposto."
+    "q5: fluxo com humor opcional, 5 sugestões e feedback (já vi/li, quero, não curto). Plano de 3 marcos proposto.",
+    "Rafael pediu sincronização automática de Letterboxd/Goodreads, sem baixar CSV, e sugeriu backend. Bloqueio b1: backend/serviço externo exige decisão."
   ],
   "backlog": [
     "YouTube e outras fontes",
