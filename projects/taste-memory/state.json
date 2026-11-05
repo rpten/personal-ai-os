@@ -2,8 +2,8 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "blocked",
-  "previous_status": "awaiting_plan_approval",
+  "status": "awaiting_plan_approval",
+  "previous_status": "blocked",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
   "discovery": {
@@ -39,8 +39,8 @@
   "milestones": [
     {
       "n": 1,
-      "title": "Importar CSVs e resumo do gosto",
-      "done_criteria": "CSVs Letterboxd/Goodreads importam, persistem no navegador e mostram resumo",
+      "title": "Sincronização RSS + CSV único + resumo do gosto",
+      "done_criteria": "Worker (código + passo a passo), sync RSS Letterboxd/Goodreads mesclado sem duplicar, CSV único de histórico, persistência e resumo",
       "status": "pending",
       "pr": null
     },
@@ -72,7 +72,8 @@
     "Bloqueio b1 aberto (A Cloudflare Workers + CSV único ⭐ / B só RSS / C estático+CSV); plano será revisado após resposta.",
     "b1: Rafael marcou 'Outro'; aguardando comentário com a decisão (e usuários Letterboxd/Goodreads se A/B).",
     "Rafael perguntou sobre dbt/backend. Respondido: dbt não se aplica; proposto Cloudflare Worker + RSS. Bloqueio b2 aberto.",
-    "b2: Rafael escolheu A (Cloudflare Worker + RSS; CSV só uma vez para histórico antigo). Aguardando usuários Letterboxd/Goodreads para revisar o plano."
+    "b2: Rafael escolheu A (Cloudflare Worker + RSS; CSV só uma vez para histórico antigo). Aguardando usuários Letterboxd/Goodreads para revisar o plano.",
+    "Usuários recebidos: Letterboxd rafaeldez; Goodreads ID 196111676. Plano revisado (M1 inclui Worker+RSS); aguardando nova aprovação."
   ],
   "backlog": [
     "YouTube e outras fontes",
