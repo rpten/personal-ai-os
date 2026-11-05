@@ -71,7 +71,8 @@
     "Rafael pediu ajuste no plano: não quer baixar/atualizar CSV; quer sincronização automática (talvez backend).",
     "Bloqueio b1 aberto (A Cloudflare Workers + CSV único ⭐ / B só RSS / C estático+CSV); plano será revisado após resposta.",
     "b1: Rafael marcou 'Outro'; aguardando comentário com a decisão (e usuários Letterboxd/Goodreads se A/B).",
-    "Rafael perguntou sobre dbt/backend. Respondido: dbt não se aplica; proposto Cloudflare Worker + RSS. Bloqueio b2 aberto."
+    "Rafael perguntou sobre dbt/backend. Respondido: dbt não se aplica; proposto Cloudflare Worker + RSS. Bloqueio b2 aberto.",
+    "b2: Rafael escolheu A (Cloudflare Worker + RSS; CSV só uma vez para histórico antigo). Aguardando usuários Letterboxd/Goodreads para revisar o plano."
   ],
   "backlog": [
     "YouTube e outras fontes",
