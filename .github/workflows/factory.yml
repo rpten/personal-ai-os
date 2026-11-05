@@ -1,0 +1,84 @@
+name: factory
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [closed]
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
+    inputs:
+      instrucao:
+        description: "Instrução opcional para o agente"
+        required: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+  actions: write
+
+# Uma execução por vez no repositório inteiro: evita duas sessões
+# escrevendo state.json ao mesmo tempo. Eventos ficam enfileirados.
+concurrency:
+  group: factory
+  cancel-in-progress: false
+
+jobs:
+  run:
+    # Só o dono do repositório aciona a fábrica (o repo pode ser público).
+    if: github.event_name == 'workflow_dispatch' || github.event.sender.login == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Guard (decide se o agente acorda)
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python factory/scripts/guard.py
+
+      - name: Navegador para QA
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          pip install --quiet playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Configurar git
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          git config user.name "factory-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Agente (Claude Code)
+        if: steps.guard.outputs.run == 'true'
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          prompt: ${{ steps.guard.outputs.prompt }}
+          claude_args: >-
+            --max-turns 200
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,TodoWrite"
+
+      # Commits feitos com GITHUB_TOKEN não disparam outras workflows;
+      # workflow_dispatch é a exceção, então o painel é republicado aqui.
+      - name: Republicar painel
+        if: always() && steps.guard.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml -R "$GITHUB_REPOSITORY" || true

@@ -1,0 +1,13 @@
+name: Nova ideia
+description: Jogue uma ideia em poucas linhas. A fábrica cuida do resto.
+title: "Ideia: "
+labels: ["ideia"]
+body:
+  - type: textarea
+    id: ideia
+    attributes:
+      label: A ideia
+      description: Poucas linhas bastam. O agente vai te entrevistar com perguntas clicáveis.
+      placeholder: "Ex.: um app para registrar o que leio e ver quanto li por mês."
+    validations:
+      required: true

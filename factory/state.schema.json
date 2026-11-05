@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Factory project state",
+  "type": "object",
+  "required": ["slug", "title", "issue", "status", "milestones"],
+  "properties": {
+    "slug": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "title": {"type": "string"},
+    "issue": {"type": "integer"},
+    "status": {"enum": ["discovery", "awaiting_plan_approval", "executing", "awaiting_milestone_approval", "blocked", "delivered", "paused", "closed"]},
+    "previous_status": {"type": ["string", "null"]},
+    "created_at": {"type": "string"},
+    "updated_at": {"type": "string"},
+    "discovery": {
+      "type": "object",
+      "properties": {
+        "answers": {"type": "array", "items": {"type": "object", "properties": {"id": {"type": "string"}, "question": {"type": "string"}, "answer": {"type": "string"}}}}
+      }
+    },
+    "current_milestone": {"type": ["integer", "null"]},
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["n", "title", "status"],
+        "properties": {
+          "n": {"type": "integer"},
+          "title": {"type": "string"},
+          "done_criteria": {"type": "string"},
+          "status": {"enum": ["pending", "in_progress", "awaiting_approval", "done"]},
+          "pr": {"type": ["integer", "null"]}
+        }
+      }
+    },
+    "preview_url": {"type": ["string", "null"]},
+    "decisions": {"type": "array", "items": {"type": "string"}},
+    "backlog": {"type": "array", "items": {"type": "string"}}
+  }
+}
