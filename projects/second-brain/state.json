@@ -1,0 +1,25 @@
+{
+  "slug": "second-brain",
+  "title": "Personal Assistant / Second Brain",
+  "issue": 1,
+  "status": "discovery",
+  "previous_status": null,
+  "created_at": "2026-11-05",
+  "updated_at": "2026-11-05",
+  "discovery": {
+    "answers": []
+  },
+  "current_milestone": null,
+  "milestones": [],
+  "preview_url": null,
+  "decisions": [
+    "Fase atual é só discovery/definição de produto: nada de implementação antes da aprovação do plano.",
+    "Personal AI OS é a infraestrutura (fábrica); o Personal Assistant é a aplicação, projeto separado.",
+    "Rafael atua como diretor; agentes executam o trabalho operacional."
+  ],
+  "backlog": [
+    "Integrações: ChatGPT, Claude, Goodreads, Letterboxd, YouTube (nenhuma assumida para o MVP)",
+    "Recomendações de livros/filmes/séries/conteúdos/atividades",
+    "Projetos de aprendizado de idiomas baseados em interesses"
+  ]
+}
