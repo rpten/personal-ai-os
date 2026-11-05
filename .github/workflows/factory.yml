@@ -33,6 +33,7 @@ jobs:
     # Só o dono do repositório aciona a fábrica (o repo pode ser público).
     if: github.event_name == 'workflow_dispatch' || github.event.sender.login == github.repository_owner
     runs-on: ubuntu-latest
+    # Teto rígido do job; o agente mira config.run_timeout_minutes (90).
     timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +73,7 @@ jobs:
           github_token: ${{ github.token }}
           prompt: ${{ steps.guard.outputs.prompt }}
           claude_args: >-
-            --max-turns 200
+            --max-turns ${{ steps.guard.outputs.max_turns }}
             --allowedTools "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,TodoWrite"
 
       # Commits feitos com GITHUB_TOKEN não disparam outras workflows;

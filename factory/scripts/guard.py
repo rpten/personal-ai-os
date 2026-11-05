@@ -197,7 +197,7 @@ Estado atual do projeto:
 {state_txt}
 
 Faça o que o protocolo manda para esse evento, comunique-se com Rafael pela issue/PR usando `gh`, e termine com o state.json atualizado e commitado em main."""
-    output(run="true", slug=slug, prompt=prompt)
+    output(run="true", slug=slug, prompt=prompt, max_turns=CONFIG["max_turns"])
 
 
 if __name__ == "__main__":
