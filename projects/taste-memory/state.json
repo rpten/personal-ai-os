@@ -2,7 +2,7 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "discovery",
+  "status": "awaiting_plan_approval",
   "previous_status": null,
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
@@ -27,18 +27,46 @@
         "id": "q4",
         "question": "De onde vêm os dados na v1?",
         "answer": "A) Importar CSV do Letterboxd (filmes) e Goodreads (livros); escolhe filme ou livro ao pedir"
+      },
+      {
+        "id": "q5",
+        "question": "Como é o pedido de recomendação, de ponta a ponta?",
+        "answer": "C) Escolhe filme/livro, humor opcional, 5 sugestões com justificativa; marca 'já vi/li', 'quero' ou 'não curto' para o app aprender"
       }
     ]
   },
   "current_milestone": null,
-  "milestones": [],
+  "milestones": [
+    {
+      "n": 1,
+      "title": "Importar CSVs e resumo do gosto",
+      "done_criteria": "CSVs Letterboxd/Goodreads importam, persistem no navegador e mostram resumo",
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "n": 2,
+      "title": "Pedido de recomendação com Gemini",
+      "done_criteria": "Filme/livro + humor opcional geram 5 sugestões com justificativa; erros tratados",
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "n": 3,
+      "title": "Feedback de sugestões",
+      "done_criteria": "Marcações já vi/li, quero, não curto persistem e influenciam o próximo pedido; botão de exportar/importar backup",
+      "status": "pending",
+      "pr": null
+    }
+  ],
   "preview_url": null,
   "decisions": [
     "Origem: second-brain (#1) encerrado; foco em recomendações e memória do gosto de Rafael (Letterboxd, Goodreads etc.).",
     "q2: recomendações com IA; Rafael quer opção gratuita se a complexidade permitir.",
     "q3: IA = Gemini free tier (AI Studio), chave do usuário guardada só no navegador.",
     "q4: dados via CSV do Letterboxd + Goodreads; usuário escolhe filme/livro ao pedir.",
-    "Esclarecido a Rafael: 'sem servidor' = app estático, dados e chave só no navegador (sem sync entre aparelhos; backup exportável). Q5 aguardando confirmação (C marcada)."
+    "Esclarecido a Rafael: 'sem servidor' = app estático, dados e chave só no navegador (sem sync entre aparelhos; backup exportável).",
+    "q5: fluxo com humor opcional, 5 sugestões e feedback (já vi/li, quero, não curto). Plano de 3 marcos proposto."
   ],
   "backlog": [
     "YouTube e outras fontes",
