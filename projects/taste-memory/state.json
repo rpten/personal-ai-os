@@ -22,6 +22,11 @@
         "id": "q3",
         "question": "Qual IA gratuita usar?",
         "answer": "A) Gemini (Google AI Studio), plano gratuito; chave só no navegador"
+      },
+      {
+        "id": "q4",
+        "question": "De onde vêm os dados na v1?",
+        "answer": "A) Importar CSV do Letterboxd (filmes) e Goodreads (livros); escolhe filme ou livro ao pedir"
       }
     ]
   },
@@ -31,7 +36,8 @@
   "decisions": [
     "Origem: second-brain (#1) encerrado; foco em recomendações e memória do gosto de Rafael (Letterboxd, Goodreads etc.).",
     "q2: recomendações com IA; Rafael quer opção gratuita se a complexidade permitir.",
-    "q3: IA = Gemini free tier (AI Studio), chave do usuário guardada só no navegador."
+    "q3: IA = Gemini free tier (AI Studio), chave do usuário guardada só no navegador.",
+    "q4: dados via CSV do Letterboxd + Goodreads; usuário escolhe filme/livro ao pedir."
   ],
   "backlog": [
     "YouTube e outras fontes",
