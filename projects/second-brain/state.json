@@ -2,8 +2,8 @@
   "slug": "second-brain",
   "title": "Personal Assistant / Second Brain",
   "issue": 1,
-  "status": "awaiting_plan_approval",
-  "previous_status": null,
+  "status": "awaiting_milestone_approval",
+  "previous_status": "awaiting_plan_approval",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
   "discovery": {
@@ -25,14 +25,14 @@
       }
     ]
   },
-  "current_milestone": null,
+  "current_milestone": 1,
   "milestones": [
     {
       "n": 1,
       "title": "Formulário guiado + geração do plano completo",
       "done_criteria": "Ideia + 5 perguntas curtas geram plano em texto com todas as seções; testes das regras verdes; prints desktop e celular",
-      "status": "pending",
-      "pr": null
+      "status": "in_review",
+      "pr": 2
     },
     {
       "n": 2,
@@ -56,7 +56,8 @@
     "Rafael atua como diretor; agentes executam o trabalho operacional.",
     "MVP ataca a dor 'ideia solta → projeto estruturado com plano e próximos passos' (q1=A).",
     "v1 é app estático: formulário guiado gera plano em texto, sem IA/backend; guarda no navegador (q2=A).",
-    "Plano gerado inclui: resumo, menor versão útil, marcos, próximo passo, riscos, backlog e checklist de pronto; por regras/modelos, sem IA (q3=B)."
+    "Plano gerado inclui: resumo, menor versão útil, marcos, próximo passo, riscos, backlog e checklist de pronto; por regras/modelos, sem IA (q3=B).",
+    "Plano aprovado por Rafael; M1 executado (PR #2). Stack: HTML/JS estático sem build, gerador por regras em public/plano.js, testes com node:test."
   ],
   "backlog": [
     "Integrações: ChatGPT, Claude, Goodreads, Letterboxd, YouTube (nenhuma assumida para o MVP)",
