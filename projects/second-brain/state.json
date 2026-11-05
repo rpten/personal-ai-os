@@ -7,7 +7,13 @@
   "created_at": "2026-11-05",
   "updated_at": "2026-11-05",
   "discovery": {
-    "answers": []
+    "answers": [
+      {
+        "id": "q1",
+        "question": "Qual dor o MVP deve resolver primeiro?",
+        "answer": "A) Ideia → projeto estruturado"
+      }
+    ]
   },
   "current_milestone": null,
   "milestones": [],
@@ -15,7 +21,8 @@
   "decisions": [
     "Fase atual é só discovery/definição de produto: nada de implementação antes da aprovação do plano.",
     "Personal AI OS é a infraestrutura (fábrica); o Personal Assistant é a aplicação, projeto separado.",
-    "Rafael atua como diretor; agentes executam o trabalho operacional."
+    "Rafael atua como diretor; agentes executam o trabalho operacional.",
+    "MVP ataca a dor 'ideia solta → projeto estruturado com plano e próximos passos' (q1=A)."
   ],
   "backlog": [
     "Integrações: ChatGPT, Claude, Goodreads, Letterboxd, YouTube (nenhuma assumida para o MVP)",
