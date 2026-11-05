@@ -25,7 +25,7 @@ Sem servidor próprio, sem banco, sem segundo app para manter.
 2. **Discovery:** responda marcando uma caixa em cada pergunta (ou comente, se for "Outro").
 3. **Plano:** marque "Aprovar" (ou aplique o label `aprovado`).
 4. **Marcos:** veja os prints no PR e mergeie. Para ajustes, marque "Pedir ajuste" e comente.
-5. **Painel:** `https://<seu-usuario>.github.io/personal-ai-os/`.
+5. **Painel:** https://rpten.github.io/personal-ai-os/.
 
 Limite padrão: 1 projeto ativo (`factory/config.json`). Ideias extras entram na fila e começam sozinhas.
 

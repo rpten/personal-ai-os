@@ -44,7 +44,8 @@ def main():
 <style>:root{{color-scheme:light dark}}body{{font-family:system-ui,sans-serif;margin:0 auto;max-width:640px;padding:16px}}
 article{{border:1px solid #8884;border-radius:10px;padding:12px 16px;margin:12px 0}}h2{{margin:.2em 0;font-size:1.1em}}
 .st{{font-weight:600;margin:.3em 0}}p{{margin:.3em 0}}</style></head>
-<body><h1>Fábrica de projetos</h1>{body}</body></html>""")
+<body><h1>Fábrica de projetos</h1>
+<p><a href="https://github.com/rpten/personal-ai-os/issues/new?template=ideia.yml">➕ Nova ideia</a></p>{body}</body></html>""")
     (OUT / ".nojekyll").write_text("")
     print(f"site com {len(cards)} projeto(s) em {OUT}")
 
