@@ -17,7 +17,7 @@ permissions:
   actions: write
 
 concurrency:
-  group: factory
+  group: sync
   cancel-in-progress: false
 
 jobs:
