@@ -95,3 +95,37 @@ test("M2 recommend: API simulada ok, chave inválida, cota, rede e bloqueio", as
   await assert.rejects(recommend({ key: "", list: [], type: "film" }), /chave/);
   assert.match(geminiError(503), /fora do ar/);
 });
+
+import { setFeedback, sugKey, exportBackup, importBackup } from "../../public/lib.js";
+
+test("M3 feedback: marcar, trocar e desfazer", () => {
+  const s = { title: "Novo", year: 2001 };
+  let fb = setFeedback({}, "film", s, "want");
+  assert.equal(fb[sugKey("film", s)].status, "want");
+  fb = setFeedback(fb, "film", s, "no"); assert.equal(fb[sugKey("film", s)].status, "no");
+  fb = setFeedback(fb, "film", s, "no"); assert.deepEqual(fb, {});
+});
+
+test("M3 feedback muda o próximo pedido: já vi/não curto entram na exclusão, quero vira sinal, e sugestões marcadas não voltam", () => {
+  let fb = setFeedback({}, "film", { title: "Vi Esse", year: 1999 }, "seen");
+  fb = setFeedback(fb, "film", { title: "Quero Esse", year: 2010 }, "want");
+  fb = setFeedback(fb, "film", { title: "Odiei Esse", year: 2005 }, "no");
+  fb = setFeedback(fb, "book", { title: "Livro X", author: "A" }, "seen");
+  const p = buildPrompt(hist(), "film", "", fb);
+  assert.match(p, /NÃO recomende[^\n]*Vi Esse/); assert.match(p, /NÃO recomende[^\n]*Odiei Esse/);
+  assert.match(p, /Quer ver[^\n]*Quero Esse/); assert.match(p, /NÃO curtiu[^\n]*Odiei Esse/);
+  assert.doesNotMatch(p, /Livro X/);
+  const raw = JSON.stringify(["Vi Esse", "Quero Esse", "Odiei Esse", "Outro"].map((t) => ({ title: t, why: "x" })));
+  assert.deepEqual(parseSuggestions(raw, [], "film", fb).map((s) => s.title), ["Outro"]);
+});
+
+test("M3 backup: exporta, restaura em banco vazio, sem a chave do Gemini; rejeita arquivo errado", () => {
+  const db = { items: hist(), feedback: setFeedback({}, "film", { title: "Q", year: 2000 }, "want"), cfg: { gkey: "SEGREDO" }, lastSync: "x" };
+  const txt = exportBackup(db);
+  assert.ok(!txt.includes("SEGREDO"));
+  const r = importBackup(txt, { items: [], feedback: {} });
+  assert.equal(r.items.length, db.items.length); assert.deepEqual(r.feedback, db.feedback);
+  assert.equal(importBackup(txt, { items: r.items, feedback: r.feedback }).added, 0);
+  assert.throws(() => importBackup("nao json", {}), /inválido/);
+  assert.throws(() => importBackup('{"a":1}', {}), /não é um backup/);
+});

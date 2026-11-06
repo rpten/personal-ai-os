@@ -1,7 +1,7 @@
-import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend } from "./lib.js";
+import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend, setFeedback, sugKey, exportBackup, importBackup } from "./lib.js";
 
 const KEY = "taste-memory:v1";
-const load = () => { try { return { items: [], cfg: {}, lastSync: null, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return { items: [], cfg: {}, lastSync: null }; } };
+const load = () => { try { return { items: [], cfg: {}, feedback: {}, lastSync: null, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return { items: [], cfg: {}, lastSync: null }; } };
 const save = () => localStorage.setItem(KEY, JSON.stringify(db));
 const db = load();
 let tab = "film";
@@ -59,16 +59,38 @@ async function importCsv(file) {
   msg.className = "ok"; msg.textContent = `${type === "film" ? "Filmes" : "Livros"}: +${r.added} novos, ${r.updated} atualizados.`;
 }
 
-document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; render(); }));
+document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; cur = []; render(); renderSugs(); }));
 if (db.cfg.gkey) $("gkey").value = db.cfg.gkey;
+let cur = [];
+function renderSugs() {
+  $("recs").innerHTML = cur.map((s, n) => { const st = db.feedback[sugKey(tab, s)]?.status; return `<div class="sug"><b>${esc(s.title)}</b>${s.year ? ` (${s.year})` : ""}${s.author ? ` — ${esc(s.author)}` : ""}<p>${esc(s.why)}</p>
+<div class="fb">${[["seen", tab === "film" ? "Já vi" : "Já li"], ["want", "Quero"], ["no", "Não curto"]].map(([k, t]) => `<button data-n="${n}" data-k="${k}" class="${st === k ? "on " + k : ""}">${t}</button>`).join("")}</div></div>`; }).join("");
+  const wants = Object.values(db.feedback).filter((f) => f.status === "want" && f.type === tab);
+  $("wants").innerHTML = wants.length ? `<h2>Quero ${tab === "film" ? "ver" : "ler"} (${wants.length})</h2><ul>${wants.map((w) => `<li>${esc(w.title)}${w.year ? ` (${w.year})` : ""}${w.author ? ` — ${esc(w.author)}` : ""}</li>`).join("")}</ul>` : "";
+}
+$("recs").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-k]"); if (!b) return;
+  db.feedback = setFeedback(db.feedback, tab, cur[+b.dataset.n], b.dataset.k); save(); renderSugs();
+});
+$("export").addEventListener("click", () => {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([exportBackup(db)], { type: "application/json" }));
+  a.download = `memoria-de-gosto-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(a.href);
+  $("bkmsg").className = "ok"; $("bkmsg").textContent = "Backup baixado.";
+});
+$("import").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return; const m = $("bkmsg");
+  try { const r = importBackup(await f.text(), db); db.items = r.items; db.feedback = r.feedback; db.lastSync = r.lastSync; save(); render(); renderSugs(); m.className = "ok"; m.textContent = `Backup restaurado (${r.items.length} itens, ${Object.keys(r.feedback).length} marcações).`; }
+  catch (err) { m.className = "err"; m.textContent = err.message; }
+  e.target.value = "";
+});
 async function rec() {
   readCfg(); const m = $("recmsg"), box = $("recs"), btn = $("rec");
   if (!db.cfg.gkey) { m.className = "err"; m.textContent = "Informe a chave do Gemini em Configurações."; $("settings").open = true; return; }
   if (!db.items.some((i) => i.type === tab)) { m.className = "err"; m.textContent = "Sincronize ou importe seu histórico antes."; return; }
   btn.disabled = true; box.innerHTML = ""; m.className = "muted"; m.textContent = "Pensando…";
   try {
-    const list = await recommend({ key: db.cfg.gkey, list: db.items, type: tab, mood: $("mood").value });
-    box.innerHTML = list.map((s) => `<div class="sug"><b>${esc(s.title)}</b>${s.year ? ` (${s.year})` : ""}${s.author ? ` — ${esc(s.author)}` : ""}<p>${esc(s.why)}</p></div>`).join("");
+    const list = await recommend({ key: db.cfg.gkey, list: db.items, type: tab, mood: $("mood").value, feedback: db.feedback });
+    cur = list; renderSugs();
     m.className = "ok"; m.textContent = `${list.length} sugestões para ${tab === "film" ? "filmes" : "livros"}.`;
   } catch (e) { m.className = "err"; m.textContent = e.message; }
   btn.disabled = false;
@@ -76,4 +98,4 @@ async function rec() {
 $("rec").addEventListener("click", rec);
 $("sync").addEventListener("click", sync);
 $("csv").addEventListener("change", (e) => e.target.files[0] && importCsv(e.target.files[0]));
-render();
+render(); renderSugs();
