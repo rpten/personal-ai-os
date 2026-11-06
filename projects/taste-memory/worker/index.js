@@ -3,7 +3,7 @@
 // POST /chat  {type, suggestion, messages, profile}      -> {reply}
 // profile: {loved:[{title,year,author,rating}], disliked:[...], seen:[títulos], wants:[títulos], nos:[títulos]}
 export const ALLOWED_ORIGIN = "https://rpten.github.io";
-export const MODEL = "gemini-2.5-flash";
+export const MODEL = "gemini-3.1-flash-lite";
 const MAX_BODY = 80_000;
 
 const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();

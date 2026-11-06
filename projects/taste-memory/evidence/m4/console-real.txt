@@ -1,0 +1,2 @@
+chamadas ao Worker real: [('recs', 200), ('chat', 200), ('recs', 200), ('chat', 200)]
+sem erros de console (além do 404 do RSS ausente na máquina local)
