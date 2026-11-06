@@ -2,7 +2,7 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "awaiting_milestone_approval",
+  "status": "delivered",
   "previous_status": "delivered",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-06",
@@ -62,7 +62,7 @@
       "n": 4,
       "title": "Indicações argumentadas + chat via Worker (chave só no servidor)",
       "done_criteria": "Sinopse e 'por que você gostaria' com itens/notas reais; chat por indicação; Worker taste-memory-recs com GEMINI_API_KEY como segredo; app sem chave",
-      "status": "awaiting_approval",
+      "status": "done",
       "pr": 7
     }
   ],
@@ -94,7 +94,8 @@
     "Rafael (05/11, inbox): chave do Gemini no servidor (Worker taste-memory-recs), fora do front-end. Segredos CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e GEMINI_API_KEY vazios no runner; tarefa guardada em pending_task até Rafael comentar 'pronto'.",
     "Rafael (05/11, inbox): v1.1 substitui a pending_task anterior: indicações argumentadas + chat, Worker taste-memory-recs. M4 (PR #7) implementado e testado só com Worker simulado; deploy/teste real aguardam segredos.",
     "Rafael (06/11, inbox): ordem correta — segredos e 'pronto' → agente faz deploy, testa com Gemini real e atualiza o PR #7 → só então merge (merge antes quebraria o app publicado).",
-    "Rafael (06/11) comentou 'pronto'. Worker taste-memory-recs implantado; testado com Gemini real (curl + navegador). Modelo trocado para gemini-3.1-flash-lite (2.5-flash indisponível p/ contas novas). PR #7 atualizado; merge liberado."
+    "Rafael (06/11) comentou 'pronto'. Worker taste-memory-recs implantado; testado com Gemini real (curl + navegador). Modelo trocado para gemini-3.1-flash-lite (2.5-flash indisponível p/ contas novas). PR #7 atualizado; merge liberado.",
+    "M4 mergeado (PR #7). v1.1 entregue: indicações argumentadas + chat via Worker taste-memory-recs."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -102,11 +103,11 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Testar e mergear o PR #7: https://github.com/rpten/personal-ai-os/pull/7"
+    "text": "Usar o app e contar o que quer a seguir: https://rpten.github.io/personal-ai-os/taste-memory/"
   },
   "last_event": {
-    "run_id": "42297180557",
-    "at": "2026-11-06T21:30:29Z",
-    "summary": "Retomada: sem nova ação de Rafael; PR #7 segue aguardando teste e merge."
+    "run_id": "42299424419",
+    "at": "2026-11-06T21:46:52Z",
+    "summary": "PR #7 (M4) mergeado; projeto marcado como entregue (v1.1)."
   }
 }
