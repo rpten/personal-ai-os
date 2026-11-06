@@ -1,7 +1,10 @@
-import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend, setFeedback, sugKey, exportBackup, importBackup } from "./lib.js";
+import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend, chat, setFeedback, sugKey, exportBackup, importBackup } from "./lib.js";
 
 const KEY = "taste-memory:v1";
-const load = () => { try { return { items: [], cfg: {}, feedback: {}, lastSync: null, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return { items: [], cfg: {}, lastSync: null }; } };
+const load = () => { let d; try { d = { items: [], feedback: {}, chats: {}, lastSync: null, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { d = { items: [], feedback: {}, chats: {}, lastSync: null }; }
+  delete d.cfg; return d; }; // M4: a chave do Gemini não existe mais no navegador; apaga qualquer resto de versões antigas
+let workerUrl = "";
+fetch("./config.json?t=" + Date.now()).then((r) => r.json()).then((c) => { workerUrl = c.workerUrl || ""; }).catch(() => {});
 const save = () => localStorage.setItem(KEY, JSON.stringify(db));
 const db = load();
 let tab = "film";
@@ -21,11 +24,6 @@ ${s.disliked.length ? `<h2>Não curtiu</h2><ul>${s.disliked.map((i) => `<li>${la
 <h2>Recentes</h2><ul>${s.recent.map((i) => `<li>${label(i)}${i.date ? ` · ${i.date}` : ""}</li>`).join("")}</ul></div>`;
   $("status").textContent = db.lastSync ? `Última sincronização: ${db.lastSync}` : "Ainda não sincronizado.";
   document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.t === tab));
-}
-
-function readCfg() {
-  db.cfg = { gkey: $("gkey").value.trim() };
-  save();
 }
 
 async function fetchXml(url) {
@@ -60,17 +58,38 @@ async function importCsv(file) {
 }
 
 document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; cur = []; render(); renderSugs(); }));
-if (db.cfg.gkey) $("gkey").value = db.cfg.gkey;
+save(); // grava já sem a chave antiga
+let openChat = null, busy = false;
 let cur = [];
+const chatBox = (k) => { const msgs = db.chats[k] || [];
+  return `<div class="chat">${msgs.map((m) => `<div class="msg ${m.role}">${esc(m.text)}</div>`).join("")}${busy ? '<div class="msg model muted">Pensando…</div>' : ""}
+<form class="cf" data-k="${esc(k)}"><input maxlength="500" placeholder="Pergunte, discorde ou peça outra opção" autocomplete="off"><button class="primary" ${busy ? "disabled" : ""}>Enviar</button></form></div>`; };
 function renderSugs() {
-  $("recs").innerHTML = cur.map((s, n) => { const st = db.feedback[sugKey(tab, s)]?.status; return `<div class="sug"><b>${esc(s.title)}</b>${s.year ? ` (${s.year})` : ""}${s.author ? ` — ${esc(s.author)}` : ""}<p>${esc(s.why)}</p>
-<div class="fb">${[["seen", tab === "film" ? "Já vi" : "Já li"], ["want", "Quero"], ["no", "Não curto"]].map(([k, t]) => `<button data-n="${n}" data-k="${k}" class="${st === k ? "on " + k : ""}">${t}</button>`).join("")}</div></div>`; }).join("");
+  $("recs").innerHTML = cur.map((s, n) => { const k = sugKey(tab, s), st = db.feedback[k]?.status;
+    return `<div class="sug"><b>${esc(s.title)}</b>${s.year ? ` (${s.year})` : ""}${s.author ? ` — ${esc(s.author)}` : ""}
+${s.synopsis ? `<p class="syn">${esc(s.synopsis)}</p>` : ""}<p><span class="tag">Por que você gostaria</span> ${esc(s.why)}</p>
+${(s.refs || []).length ? `<p class="refs">${s.refs.map((r) => `<span class="chip">${esc(r.title)}${r.rating ? ` · ${r.rating}★` : ""}</span>`).join("")}</p>` : ""}
+<div class="fb">${[["seen", tab === "film" ? "Já vi" : "Já li"], ["want", "Quero"], ["no", "Não curto"]].map(([kk, t]) => `<button data-n="${n}" data-k="${kk}" class="${st === kk ? "on " + kk : ""}">${t}</button>`).join("")}<button data-n="${n}" data-chat="1" class="${openChat === k ? "on chatb" : ""}">💬 Conversar</button></div>
+${openChat === k ? chatBox(k) : ""}</div>`; }).join("");
   const wants = Object.values(db.feedback).filter((f) => f.status === "want" && f.type === tab);
   $("wants").innerHTML = wants.length ? `<h2>Quero ${tab === "film" ? "ver" : "ler"} (${wants.length})</h2><ul>${wants.map((w) => `<li>${esc(w.title)}${w.year ? ` (${w.year})` : ""}${w.author ? ` — ${esc(w.author)}` : ""}</li>`).join("")}</ul>` : "";
 }
 $("recs").addEventListener("click", (e) => {
+  const c = e.target.closest("button[data-chat]");
+  if (c) { const k = sugKey(tab, cur[+c.dataset.n]); openChat = openChat === k ? null : k; renderSugs(); $("recs").querySelector(".cf input")?.focus(); return; }
   const b = e.target.closest("button[data-k]"); if (!b) return;
   db.feedback = setFeedback(db.feedback, tab, cur[+b.dataset.n], b.dataset.k); save(); renderSugs();
+});
+$("recs").addEventListener("submit", async (e) => {
+  e.preventDefault(); const f = e.target.closest(".cf"); if (!f || busy) return;
+  const input = f.querySelector("input"), text = input.value.trim(), k = f.dataset.k; if (!text) return;
+  const sug = cur.find((s) => sugKey(tab, s) === k), msgs = (db.chats[k] ||= []);
+  msgs.push({ role: "user", text }); busy = true; save(); renderSugs();
+  try {
+    const r = await chat({ workerUrl, list: db.items, type: tab, feedback: db.feedback, suggestion: sug, messages: msgs.filter((m) => !m.error) });
+    msgs.push({ role: "model", text: r });
+  } catch (err) { msgs.push({ role: "model", text: "⚠️ " + err.message, error: true }); }
+  busy = false; save(); renderSugs(); $("recs").querySelector(".cf input")?.focus();
 });
 $("export").addEventListener("click", () => {
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([exportBackup(db)], { type: "application/json" }));
@@ -84,13 +103,12 @@ $("import").addEventListener("change", async (e) => {
   e.target.value = "";
 });
 async function rec() {
-  readCfg(); const m = $("recmsg"), box = $("recs"), btn = $("rec");
-  if (!db.cfg.gkey) { m.className = "err"; m.textContent = "Informe a chave do Gemini em Configurações."; $("settings").open = true; return; }
+  const m = $("recmsg"), box = $("recs"), btn = $("rec");
   if (!db.items.some((i) => i.type === tab)) { m.className = "err"; m.textContent = "Sincronize ou importe seu histórico antes."; return; }
   btn.disabled = true; box.innerHTML = ""; m.className = "muted"; m.textContent = "Pensando…";
   try {
-    const list = await recommend({ key: db.cfg.gkey, list: db.items, type: tab, mood: $("mood").value, feedback: db.feedback });
-    cur = list; renderSugs();
+    const list = await recommend({ workerUrl, list: db.items, type: tab, mood: $("mood").value, feedback: db.feedback });
+    cur = list; openChat = null; renderSugs();
     m.className = "ok"; m.textContent = `${list.length} sugestões para ${tab === "film" ? "filmes" : "livros"}.`;
   } catch (e) { m.className = "err"; m.textContent = e.message; }
   btn.disabled = false;

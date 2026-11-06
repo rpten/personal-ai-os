@@ -1,0 +1,4 @@
+name = "taste-memory-recs"
+main = "index.js"
+compatibility_date = "2025-01-01"
+# GEMINI_API_KEY é segredo do Worker: `wrangler secret put GEMINI_API_KEY` (nunca neste arquivo).
