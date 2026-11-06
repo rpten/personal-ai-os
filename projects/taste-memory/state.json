@@ -92,7 +92,8 @@
     "b3: Rafael escolheu A (livros do Goodreads por CSV manual, ~1x/mês). Sem cookie/automação. M3 aguarda merge do PR #6.",
     "M3 mergeado (PR #6). Projeto entregue (v1).",
     "Rafael (05/11, inbox): chave do Gemini no servidor (Worker taste-memory-recs), fora do front-end. Segredos CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e GEMINI_API_KEY vazios no runner; tarefa guardada em pending_task até Rafael comentar 'pronto'.",
-    "Rafael (05/11, inbox): v1.1 substitui a pending_task anterior: indicações argumentadas + chat, Worker taste-memory-recs. M4 (PR #7) implementado e testado só com Worker simulado; deploy/teste real aguardam segredos."
+    "Rafael (05/11, inbox): v1.1 substitui a pending_task anterior: indicações argumentadas + chat, Worker taste-memory-recs. M4 (PR #7) implementado e testado só com Worker simulado; deploy/teste real aguardam segredos.",
+    "Rafael (06/11, inbox): ordem correta — segredos e 'pronto' → agente faz deploy, testa com Gemini real e atualiza o PR #7 → só então merge (merge antes quebraria o app publicado)."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -100,12 +101,12 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Ver os prints e mergear o PR #7 (e criar os 3 segredos conforme a issue #3): https://github.com/rpten/personal-ai-os/pull/7"
+    "text": "Criar os 3 segredos (GEMINI_API_KEY, CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID) e comentar 'pronto' na issue #3 (não mergear o PR #7 ainda): https://github.com/rpten/personal-ai-os/issues/3"
   },
   "pending_task": "deploy do Worker + teste real do M4",
   "last_event": {
-    "run_id": "migracao-p0",
-    "at": "2026-11-06T19:56:33Z",
-    "summary": "Migração P0: estado alinhado ao schema (marco 4 aguardando aprovação)."
+    "run_id": "42284229037",
+    "at": "2026-11-06T19:58:39Z",
+    "summary": "Corrigida a ordem: segredos e 'pronto' primeiro, deploy e teste real depois, merge do PR #7 por último."
   }
 }
