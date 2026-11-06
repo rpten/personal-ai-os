@@ -12,16 +12,12 @@
 <section class="card"><h2>Atualizar dados</h2>
 <p id="status" class="muted"></p><p class="muted">Os feeds de Letterboxd e Goodreads são coletados de hora em hora pela fábrica; aqui você só puxa o mais recente.</p>
 <button id="sync" class="primary">Atualizar agora</button>
-<details id="settings"><summary>Configurações</summary>
-<label>Chave do Gemini (fica só neste navegador) <input id="gkey" type="password" autocomplete="off" placeholder="AIza…"></label>
-<p class="muted">Grátis em <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a> (login Google, 1 minuto).</p>
-
-</details></section>
+</section>
 <section class="card"><h2>Importar CSV (uma vez)</h2>
 <p class="muted">Letterboxd: <i>ratings.csv</i> do export. Goodreads: export da biblioteca. O tipo é detectado sozinho.</p>
 <input type="file" id="csv" accept=".csv,text/csv"><p id="csvmsg" class="muted"></p></section>
 <section class="card"><h2>Backup</h2>
-<p class="muted">Seus dados ficam só neste navegador. Baixe um backup para guardar ou levar a outro aparelho (a chave do Gemini não vai no arquivo).</p>
+<p class="muted">Seus dados ficam só neste navegador. Baixe um backup para guardar ou levar a outro aparelho.</p>
 <button id="export" class="primary">Exportar backup</button>
 <label>Restaurar backup <input type="file" id="import" accept=".json,application/json"></label><p id="bkmsg" class="muted"></p></section>
 </main><script type="module" src="app.js"></script></body></html>

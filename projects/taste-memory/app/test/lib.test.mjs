@@ -64,36 +64,39 @@ test("resumo: média, histograma, favoritos e década", () => {
 });
 
 
-import { buildPrompt, parseSuggestions, recommend, geminiError } from "../../public/lib.js";
+import { buildProfile, recommend, chat } from "../../public/lib.js";
 const hist = () => [...parseLetterboxdRss(fx("letterboxd.xml")), ...parseGoodreadsRss(fx("goodreads.xml"))];
 
-test("M2 prompt: inclui gostos, humor e lista de já vistos; só o tipo pedido", () => {
-  const p = buildPrompt(hist(), "film", "algo leve");
-  assert.match(p, /Parasita/); assert.match(p, /algo leve/); assert.match(p, /NÃO recomende/); assert.doesNotMatch(p, /Dom Casmurro/);
+test("M4 perfil: só o tipo pedido, com notas reais; nada de chave", () => {
+  const p = buildProfile(hist(), "film", {});
+  assert.ok(p.loved.some((i) => i.title === "Parasita" && i.rating === 5));
+  assert.ok(!JSON.stringify(p).includes("Dom Casmurro"));
 });
 
-test("M2 parse: aceita cercas ```json, descarta já vistos e limita a 5", () => {
-  const raw = "```json\n" + JSON.stringify([{ title: "Parasita", year: 2019, why: "x" }, ...[1, 2, 3, 4, 5, 6].map((n) => ({ title: `Novo ${n}`, year: 2000 + n, why: "porque sim" }))]) + "\n```";
-  const r = parseSuggestions(raw, hist(), "film");
-  assert.equal(r.length, 5); assert.ok(!r.some((s) => s.title === "Parasita"));
+test("M4 feedback entra no perfil: já vi/não curto excluem, quero vira sinal, outro tipo fica de fora", () => {
+  let fb = setFeedback({}, "film", { title: "Vi Esse", year: 1999 }, "seen");
+  fb = setFeedback(fb, "film", { title: "Quero Esse", year: 2010 }, "want");
+  fb = setFeedback(fb, "film", { title: "Odiei Esse", year: 2005 }, "no");
+  fb = setFeedback(fb, "book", { title: "Livro X", author: "A" }, "seen");
+  const p = buildProfile(hist(), "film", fb);
+  assert.ok(p.seen.includes("Vi Esse") && p.seen.includes("Odiei Esse") && !p.seen.includes("Quero Esse"));
+  assert.deepEqual(p.wants, ["Quero Esse"]); assert.deepEqual(p.nos, ["Odiei Esse"]);
+  assert.ok(!JSON.stringify(p).includes("Livro X"));
 });
 
-test("M2 parse: erros claros", () => {
-  assert.throws(() => parseSuggestions("oi", [], "film"), /sem lista/);
-  assert.throws(() => parseSuggestions("[{oops]", [], "film"), /inválido/);
-  assert.throws(() => parseSuggestions('[{"title":"Parasita"}]', hist(), "film"), /nenhuma sugestão nova/);
-});
-
-test("M2 recommend: API simulada ok, chave inválida, cota, rede e bloqueio", async () => {
-  const ok = async (u, o) => { assert.match(o.headers["x-goog-api-key"], /K/); return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '[{"title":"Novo","year":2001,"why":"a"}]' }] } }] }) }; };
-  assert.equal((await recommend({ key: "K", list: hist(), type: "film", fetchFn: ok }))[0].title, "Novo");
-  const st = (s, b = "") => async () => ({ ok: false, status: s, text: async () => b });
-  await assert.rejects(recommend({ key: "K", list: [], type: "film", fetchFn: st(400, "API key not valid") }), /inválida/);
-  await assert.rejects(recommend({ key: "K", list: [], type: "film", fetchFn: st(429) }), /Limite gratuito/);
-  await assert.rejects(recommend({ key: "K", list: [], type: "film", fetchFn: async () => { throw new Error("x"); } }), /Sem conexão/);
-  await assert.rejects(recommend({ key: "K", list: [], type: "film", fetchFn: async () => ({ ok: true, json: async () => ({ promptFeedback: { blockReason: "SAFETY" } }) }) }), /bloqueou/);
-  await assert.rejects(recommend({ key: "", list: [], type: "film" }), /chave/);
-  assert.match(geminiError(503), /fora do ar/);
+const okJson = (body) => async (u, o) => ({ ok: true, status: 200, json: async () => body });
+test("M4 recommend/chat: chamam o Worker (sem chave nenhuma) e tratam erros", async () => {
+  const calls = [];
+  const f = (body, status = 200) => async (u, o) => { calls.push([u, JSON.parse(o.body), o.headers]); return { ok: status === 200, status, json: async () => body }; };
+  const s = await recommend({ workerUrl: "https://w.dev/", list: hist(), type: "film", mood: "leve", fetchFn: f({ suggestions: [{ title: "Novo" }] }) });
+  assert.equal(s[0].title, "Novo"); assert.equal(calls[0][0], "https://w.dev/recs"); assert.equal(calls[0][1].mood, "leve");
+  assert.ok(!JSON.stringify(calls[0]).match(/key|AIza/i));
+  const r = await chat({ workerUrl: "https://w.dev", list: hist(), type: "film", suggestion: { title: "Novo" }, messages: [{ role: "user", text: "oi" }], fetchFn: f({ reply: "Olá" }) });
+  assert.equal(r, "Olá"); assert.equal(calls[1][0], "https://w.dev/chat");
+  await assert.rejects(recommend({ workerUrl: "", list: [], type: "film" }), /ainda não foi publicado/);
+  await assert.rejects(recommend({ workerUrl: "https://w.dev", list: [], type: "film", fetchFn: f({ error: "Limite gratuito do Gemini atingido." }, 429) }), /Limite gratuito/);
+  await assert.rejects(recommend({ workerUrl: "https://w.dev", list: [], type: "film", fetchFn: async () => { throw new Error("x"); } }), /Sem conexão/);
+  await assert.rejects(recommend({ workerUrl: "https://w.dev", list: [], type: "film", fetchFn: f({ suggestions: [] }) }), /não devolveu/);
 });
 
 import { setFeedback, sugKey, exportBackup, importBackup } from "../../public/lib.js";
@@ -104,19 +107,6 @@ test("M3 feedback: marcar, trocar e desfazer", () => {
   assert.equal(fb[sugKey("film", s)].status, "want");
   fb = setFeedback(fb, "film", s, "no"); assert.equal(fb[sugKey("film", s)].status, "no");
   fb = setFeedback(fb, "film", s, "no"); assert.deepEqual(fb, {});
-});
-
-test("M3 feedback muda o próximo pedido: já vi/não curto entram na exclusão, quero vira sinal, e sugestões marcadas não voltam", () => {
-  let fb = setFeedback({}, "film", { title: "Vi Esse", year: 1999 }, "seen");
-  fb = setFeedback(fb, "film", { title: "Quero Esse", year: 2010 }, "want");
-  fb = setFeedback(fb, "film", { title: "Odiei Esse", year: 2005 }, "no");
-  fb = setFeedback(fb, "book", { title: "Livro X", author: "A" }, "seen");
-  const p = buildPrompt(hist(), "film", "", fb);
-  assert.match(p, /NÃO recomende[^\n]*Vi Esse/); assert.match(p, /NÃO recomende[^\n]*Odiei Esse/);
-  assert.match(p, /Quer ver[^\n]*Quero Esse/); assert.match(p, /NÃO curtiu[^\n]*Odiei Esse/);
-  assert.doesNotMatch(p, /Livro X/);
-  const raw = JSON.stringify(["Vi Esse", "Quero Esse", "Odiei Esse", "Outro"].map((t) => ({ title: t, why: "x" })));
-  assert.deepEqual(parseSuggestions(raw, [], "film", fb).map((s) => s.title), ["Outro"]);
 });
 
 test("M3 backup: exporta, restaura em banco vazio, sem a chave do Gemini; rejeita arquivo errado", () => {

@@ -1,0 +1,1 @@
+sem erros de console (além do 404 simulado do RSS e do 429 simulado do chat)
