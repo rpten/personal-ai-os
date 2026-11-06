@@ -130,6 +130,17 @@ def reconcile(repo, owner, states):
     return start_idea(repo, first), first["number"]
 
 
+def inbox_item():
+    """Instrução pendente em factory/inbox/*.md (enviada por Rafael ou em nome dele)."""
+    files = sorted((ROOT / "factory/inbox").glob("*.md"))
+    if not files:
+        return None
+    f = files[0]
+    text = f.read_text()
+    m = re.search(r"^slug:\s*([a-z0-9-]+)\s*$", text, re.M)
+    return f.relative_to(ROOT).as_posix(), text, (m.group(1) if m else "")
+
+
 def decide(event_name, event, repo, owner, states):
     """Retorna (detail, slug, expect_issue). Levanta Skip para não rodar."""
     sender = event.get("sender", {}).get("login", "")
@@ -151,6 +162,11 @@ def decide(event_name, event, repo, owner, states):
         instr = (event.get("inputs") or {}).get("instrucao")
         if instr:
             return instr, "", None
+        item = inbox_item()
+        if item:
+            path, text, slug = item
+            return (f"Instrução de Rafael (caixa de entrada `{path}`), trate como um comentário dele:\n\n{text}\n\n"
+                    f"Ao terminar, apague `{path}` (git rm) no mesmo commit do state.json."), slug, None
         detail, n = reconcile(repo, owner, states)
         return detail, "", n
 

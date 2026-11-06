@@ -175,3 +175,19 @@ def test_label_aprovado(env):
     ev = issue_ev(1, action="labeled")
     ev["label"] = {"name": "aprovado"}
     assert env.decide("issues", ev)[1] == "a"
+
+
+# --- caixa de entrada -----------------------------------------------------
+
+def test_inbox_tem_prioridade_e_traz_slug(env):
+    d = env.root / "factory/inbox"; d.mkdir()
+    (d / "001-x.md").write_text("slug: taste-memory\nFaça Y")
+    env.issues([{"number": 9, "labels": []}])
+    detail, slug, expect = env.decide("push", {})
+    assert slug == "taste-memory" and "Faça Y" in detail and "factory/inbox/001-x.md" in detail and expect is None
+
+
+def test_inbox_vazia_segue_reconciliacao(env):
+    (env.root / "factory/inbox").mkdir()
+    env.issues([{"number": 9, "labels": []}])
+    assert env.decide("push", {})[2] == 9
