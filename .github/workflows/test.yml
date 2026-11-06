@@ -2,7 +2,7 @@ name: test
 
 # Regressão da fábrica: roda em toda mudança de protocolo, scripts, workflows
 # ou estado. Falha = vermelho + notificação; rollback = `git revert` do commit
-# (ou voltar à tag factory-v* anterior).
+# (ou voltar ao branch release/factory-v* anterior).
 on:
   push:
     branches: [main]

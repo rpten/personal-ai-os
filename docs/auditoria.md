@@ -68,7 +68,7 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ ausente · ⚠️ contraditóri
 | Estados distintos | ✅ | 👀 executando · ledger: `ignored`, `queued`, `done`, `waiting`, `blocked`, `failed` |
 | Idempotência / sem duplicação | ✅ | chave por evento no ledger; concorrência por projeto |
 | Testes de gatilhos, guardas e transições | ✅ | `factory/tests/` (49 testes) em `test.yml` a cada mudança |
-| Regressão e rollback | 🟡 | CI de regressão + tag `factory-v1`; rollback = `git revert`. Sem proteção de branch (exige configuração de Rafael) |
+| Regressão e rollback | 🟡 | CI de regressão + ponto de restauração no branch `release/factory-v1`; rollback = `git revert`. Sem proteção de branch (exige configuração de Rafael) |
 | Autorização para ações pagas/irreversíveis | 🟡 | regra no protocolo; barreira técnica só em `.github/` |
 | Sob demanda; agentes param | ✅ | cada execução termina e o job encerra |
 
