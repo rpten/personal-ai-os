@@ -5,10 +5,12 @@
 <h1>Memória de gosto</h1>
 <nav id="tabs"><button data-t="film" class="on">Filmes</button><button data-t="book">Livros</button></nav>
 <section id="summary" aria-live="polite"></section>
-<section class="card"><h2>O que ver/ler agora?</h2>
-<label>Humor ou pedido (opcional) <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></label>
-<button id="rec" class="primary" style="margin-top:10px">Recomendar 5</button>
-<p id="recmsg" class="muted" aria-live="polite"></p><div id="recs"></div><div id="wants"></div></section>
+<section class="card"><h2 id="rech">Indicações para você</h2>
+<p class="muted">O curador usa o que sabe do seu gosto (notas, favoritos, o que você marcou). Não precisa pedir nada.</p>
+<button id="rec" class="primary">Me indique 5</button>
+<details style="margin-top:10px"><summary class="muted">Quer direcionar? (opcional)</summary>
+<label>Humor ou pedido <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></label></details>
+<p id="recmsg" class="muted" aria-live="polite" role="status"></p><div id="recs"></div><div id="wants"></div></section>
 <section class="card"><h2>Atualizar dados</h2>
 <p id="status" class="muted"></p><p class="muted">Os feeds de Letterboxd e Goodreads são coletados de hora em hora pela fábrica; aqui você só puxa o mais recente.</p>
 <button id="sync" class="primary">Atualizar agora</button>
