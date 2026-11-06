@@ -1,1 +1,2 @@
 {"at": "2026-11-06T19:56:33Z", "run_id": "migracao-p0", "event": "migracao", "key": "", "slug": "", "issue": null, "outcome": "done", "summary": "Fábrica P0: estados explícitos, verificação de resultado, ledger de eventos e retomada automática."}
+{"at": "2026-11-06T19:58:44Z", "run_id": "42284229037", "event": "push/", "key": "", "slug": "taste-memory", "issue": 3, "outcome": "waiting", "summary": "Corrigida a ordem: segredos e 'pronto' primeiro, deploy e teste real depois, merge do PR #7 por último."}
