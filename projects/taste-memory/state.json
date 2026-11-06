@@ -81,7 +81,8 @@
     "M2 mergeado (PR #5). M3 (PR #6): feedback já vi/quero/não curto, backup JSON e visual novo; Gemini real não testado.",
     "Rafael (06/11) mandou o link da estante do Goodreads; redireciona para login (estante privada). Pedido o link RSS com key= ou estante pública.",
     "Rafael (06/11): perfil público mas sem opção de RSS no Goodreads; testado: RSS 404 e estante exige login. Livros ficam por CSV (exportação do Goodreads); sync automático só para filmes.",
-    "Rafael (06/11) perguntou sobre automatizar o export do Goodreads. Exige login/cookie dele (frágil, contra ToS): pergunta b3 no PR #6 (A manual ⭐ / B cookie / C marcar no app). M3 segue aguardando merge."
+    "Rafael (06/11) perguntou sobre automatizar o export do Goodreads. Exige login/cookie dele (frágil, contra ToS): pergunta b3 no PR #6 (A manual ⭐ / B cookie / C marcar no app). M3 segue aguardando merge.",
+    "b3: Rafael escolheu A (livros do Goodreads por CSV manual, ~1x/mês). Sem cookie/automação. M3 aguarda merge do PR #6."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -89,6 +90,6 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Responder b3 e mergear o PR #6 para aprovar o M3 (github.com/rpten/personal-ai-os/pull/6)."
+    "text": "Mergear o PR #6 para aprovar o M3 (https://github.com/rpten/personal-ai-os/pull/6)."
   }
 }
