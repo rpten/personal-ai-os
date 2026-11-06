@@ -103,15 +103,19 @@ $("import").addEventListener("change", async (e) => {
   e.target.value = "";
 });
 async function rec() {
-  const m = $("recmsg"), box = $("recs"), btn = $("rec");
-  if (!db.items.some((i) => i.type === tab)) { m.className = "err"; m.textContent = "Sincronize ou importe seu histórico antes."; return; }
-  btn.disabled = true; box.innerHTML = ""; m.className = "muted"; m.textContent = "Pensando…";
+  const m = $("recmsg"), box = $("recs"), btn = $("rec"), kind = tab === "film" ? "filmes" : "livros";
+  if (!db.items.some((i) => i.type === tab)) { m.className = "err"; m.textContent = `Ainda não tenho nenhum dos seus ${kind}. ${tab === "book" ? "Importe o CSV do Goodreads (seção abaixo)" : "Toque em “Atualizar agora” ou importe o CSV"} e tente de novo.`; return; }
+  const t0 = Date.now(), label = btn.textContent;
+  btn.disabled = true; box.innerHTML = ""; m.className = "muted";
+  const tick = () => { const s = Math.round((Date.now() - t0) / 1000); btn.textContent = `⏳ Buscando… ${s}s`; m.textContent = `Analisando seus ${kind} e escolhendo 5 indicações (costuma levar de 5 a 20 segundos)…`; };
+  tick(); const timer = setInterval(tick, 1000);
   try {
     const list = await recommend({ workerUrl, list: db.items, type: tab, mood: $("mood").value, feedback: db.feedback });
     cur = list; openChat = null; renderSugs();
-    m.className = "ok"; m.textContent = `${list.length} sugestões para ${tab === "film" ? "filmes" : "livros"}.`;
+    m.className = "ok"; m.textContent = `Pronto: ${list.length} indicações de ${kind} em ${Math.round((Date.now() - t0) / 1000)}s.`;
+    box.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (e) { m.className = "err"; m.textContent = e.message; }
-  btn.disabled = false;
+  clearInterval(timer); btn.textContent = label; btn.disabled = false;
 }
 $("rec").addEventListener("click", rec);
 $("sync").addEventListener("click", sync);
