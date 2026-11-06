@@ -120,8 +120,25 @@ export const sugKey = (type, s) => (type === "film" ? filmKey(s.title, s.year) :
 export function setFeedback(fb, type, s, status) {
   const key = sugKey(type, s), next = { ...fb };
   if (!status || next[key]?.status === status) delete next[key]; // clicar de novo desfaz
-  else next[key] = { status, type, title: s.title, year: s.year || null, author: s.author || "" };
+  else next[key] = { status, type, title: s.title, year: s.year || null, author: s.author || "", synopsis: s.synopsis || next[key]?.synopsis || "", why: s.why || next[key]?.why || "" };
   return next;
+}
+// ---- M6: backlog (lista "Quero") ----
+export const backlog = (fb, type) => Object.entries(fb).filter(([, f]) => f.status === "want" && f.type === type).map(([key, f]) => ({ key, ...f }));
+export function removeFromBacklog(fb, key) { const n = { ...fb }; delete n[key]; return n; }
+// "Já vi/li": sai do backlog, vira "visto" e (se tiver nota) entra no histórico como item manual
+export function markDone(db, key, rating, today = new Date().toISOString().slice(0, 10)) {
+  const f = db.feedback[key]; if (!f) return db;
+  const feedback = { ...db.feedback, [key]: { ...f, status: "seen" } };
+  const r = num(rating);
+  const items = db.items.some((i) => i.key === key) ? db.items.map((i) => (i.key === key && r ? { ...i, rating: r } : i))
+    : [...db.items, { key, type: f.type, title: f.title, year: f.year, author: f.author || "", rating: r, date: today, source: "manual" }];
+  return { ...db, feedback, items };
+}
+export async function pickFromBacklog({ workerUrl, list, type, mood, feedback = {}, fetchFn }) {
+  const d = await callWorker(workerUrl, "/pick", { type, mood: (mood || "").slice(0, 200), profile: buildProfile(list, type, feedback) }, fetchFn);
+  if (!Array.isArray(d?.picks) || !d.picks.length) throw new Error("O servidor não escolheu nada do seu backlog.");
+  return d.picks;
 }
 export function exportBackup(db) {
   return JSON.stringify({ app: "taste-memory", version: 1, exportedAt: new Date().toISOString(), items: db.items || [], feedback: db.feedback || {}, lastSync: db.lastSync || null }, null, 1);

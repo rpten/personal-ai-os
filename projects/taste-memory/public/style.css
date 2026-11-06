@@ -25,3 +25,5 @@ ul{padding-left:1.1rem;margin:.3rem 0}li{margin:3px 0}.ok{color:var(--ok)}.err{c
 .chat{margin-top:10px;padding:10px;background:#11161d;border-radius:10px}.msg{padding:8px 10px;border-radius:10px;margin:6px 0;font-size:.92rem;white-space:pre-wrap;max-width:92%}
 .msg.user{background:#22385c;margin-left:auto}.msg.model{background:var(--card);border:1px solid var(--line)}
 .cf{display:flex;gap:6px;margin-top:8px}.cf input{margin:0!important}.cf button{width:auto!important;padding:0 16px!important}
+#bltabs{display:flex;gap:6px;margin-bottom:10px}#bltabs button{flex:1;padding:9px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--txt);font:inherit}#bltabs button.on{background:#22385c;border-color:var(--acc)}
+#blpick{display:grid;gap:8px}.pick{background:#11161d;border-radius:10px;padding:10px;margin:6px 0}.stars{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.stars button,.fb button[data-act]{padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--txt);font:inherit}
