@@ -2,8 +2,8 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "delivered",
-  "previous_status": "executing",
+  "status": "awaiting_milestone_approval",
+  "previous_status": "delivered",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-06",
   "discovery": {
@@ -35,7 +35,7 @@
       }
     ]
   },
-  "current_milestone": 3,
+  "current_milestone": 4,
   "milestones": [
     {
       "n": 1,
@@ -57,6 +57,13 @@
       "done_criteria": "Marcações já vi/li, quero, não curto persistem e influenciam o próximo pedido; botão de exportar/importar backup",
       "status": "done",
       "pr": 6
+    },
+    {
+      "n": 4,
+      "title": "Indicações argumentadas + chat via Worker (chave só no servidor)",
+      "done_criteria": "Sinopse e 'por que você gostaria' com itens/notas reais; chat por indicação; Worker taste-memory-recs com GEMINI_API_KEY como segredo; app sem chave",
+      "status": "in_review",
+      "pr": 7
     }
   ],
   "preview_url": "https://rpten.github.io/personal-ai-os/taste-memory/",
@@ -84,7 +91,8 @@
     "Rafael (06/11) perguntou sobre automatizar o export do Goodreads. Exige login/cookie dele (frágil, contra ToS): pergunta b3 no PR #6 (A manual ⭐ / B cookie / C marcar no app). M3 segue aguardando merge.",
     "b3: Rafael escolheu A (livros do Goodreads por CSV manual, ~1x/mês). Sem cookie/automação. M3 aguarda merge do PR #6.",
     "M3 mergeado (PR #6). Projeto entregue (v1).",
-    "Rafael (05/11, inbox): chave do Gemini no servidor (Worker taste-memory-recs), fora do front-end. Segredos CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e GEMINI_API_KEY vazios no runner; tarefa guardada em pending_task até Rafael comentar 'pronto'."
+    "Rafael (05/11, inbox): chave do Gemini no servidor (Worker taste-memory-recs), fora do front-end. Segredos CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID e GEMINI_API_KEY vazios no runner; tarefa guardada em pending_task até Rafael comentar 'pronto'.",
+    "Rafael (05/11, inbox): v1.1 substitui a pending_task anterior: indicações argumentadas + chat, Worker taste-memory-recs. M4 (PR #7) implementado e testado só com Worker simulado; deploy/teste real aguardam segredos."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -92,7 +100,7 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Criar os 3 segredos no repo e comentar **pronto** na issue #3: https://github.com/rpten/personal-ai-os/issues/3"
+    "text": "Ver os prints e mergear o PR #7 (e criar os 3 segredos conforme a issue #3): https://github.com/rpten/personal-ai-os/pull/7"
   },
-  "pending_task": "slug: taste-memory\n\nDecisão de Rafael (05/11): a chave do Gemini não pode ficar no front-end nem ser colada a cada aparelho. Ele vai configurar uma vez só.\n\nFaça:\n1. Mova a chamada ao Gemini para um Cloudflare Worker (`taste-memory-recs`) com a chave como segredo do Worker (`wrangler secret put GEMINI_API_KEY`, valor da variável de ambiente). CORS só para https://rpten.github.io.\n2. Remova do app o campo de chave e qualquer leitura/escrita dela no localStorage. O app chama o Worker.\n3. Teste o Worker de verdade (deploy + chamada real) e mostre a evidência.\n4. Se `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` ou `GEMINI_API_KEY` estiverem vazios, não implemente pela metade: comente na issue #3 exatamente quais faltam e como criar cada um (no máximo 3 passos por segredo, com links: aistudio.google.com/apikey para o Gemini; token Cloudflare com o modelo \"Edit Cloudflare Workers\"). Copie esta instrução inteira para `state.pending_task`, apague o arquivo da caixa de entrada e termine com `👉 Sua vez:` pedindo que ele comente **pronto** na issue #3 quando tiver preenchido. No próximo comentário dele, retome a `pending_task`.\n\nIsto é um ajuste pós-entrega: abra um PR `[taste-memory] Ajuste: chave no servidor` com evidências, como um marco.\n"
+  "pending_task": "deploy do Worker + teste real do M4"
 }
