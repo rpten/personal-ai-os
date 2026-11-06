@@ -97,7 +97,8 @@
     "Rafael (06/11) comentou 'pronto'. Worker taste-memory-recs implantado; testado com Gemini real (curl + navegador). Modelo trocado para gemini-3.1-flash-lite (2.5-flash indisponível p/ contas novas). PR #7 atualizado; merge liberado.",
     "M4 mergeado (PR #7). v1.1 entregue: indicações argumentadas + chat via Worker taste-memory-recs.",
     "Rafael (06/11) reclamou de pedido de chave do Gemini. Verificado: site publicado e Worker sem campo de chave; Worker responde com Gemini real. Provável cache do navegador com versão antiga (M3).",
-    "Rafael (06/11) pediu backlog de filmes e livros alimentado por 'Quero'; confirmado: indicações excluem visto/quero/não curto (limite 100). Pergunta q7 (A: M6 com abas de backlog ⭐ / B: só tirar limite)."
+    "Rafael (06/11) pediu backlog de filmes e livros alimentado por 'Quero'; confirmado: indicações excluem visto/quero/não curto (limite 100). Pergunta q7 (A: M6 com abas de backlog ⭐ / B: só tirar limite).",
+    "q6: Rafael escolheu A. Aberta issue `fabrica` #9: perfil em factory/profile/rafael.md publicado como JSON para os apps lerem. PR #8 (M5) segue aguardando merge."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -108,8 +109,8 @@
     "text": "Responder a pergunta q7 na issue #7 e mergear o PR #8: https://github.com/rpten/personal-ai-os/pull/8"
   },
   "last_event": {
-    "run_id": "42305787140",
-    "at": "2026-11-06T22:35:41Z",
-    "summary": "Respondi sobre indicações novas e exclusão de 'não curto' e propus o backlog de filmes/livros (pergunta q7)."
+    "run_id": "42305824999",
+    "at": "2026-11-06T22:36:38Z",
+    "summary": "Abri a issue fabrica #9 para o perfil do Rafael; PR #8 e pergunta q7 aguardam resposta."
   }
 }
