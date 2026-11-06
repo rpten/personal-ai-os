@@ -78,7 +78,8 @@
     "Rafael (via Claude, 05/11): trocar o Cloudflare Worker pela workflow `sync` da fábrica (projects/taste-memory/sync/run.sh busca os RSS de hora em hora e grava JSON em public/data). Sem conta nova. Fazer no M2, junto com o Gemini; remover o Worker e o campo 'URL do Worker'.",
     "Rafael (05/11): visual do M1 está feio; tratar no M3.",
     "M1 mergeado (PR #4). M2 (PR #5): Gemini (só simulado) + Worker removido, coleta via workflow sync. Letterboxd real OK; RSS do Goodreads dá 404 (livros por CSV até Rafael passar a URL do feed).",
-    "M2 mergeado (PR #5). M3 (PR #6): feedback já vi/quero/não curto, backup JSON e visual novo; Gemini real não testado."
+    "M2 mergeado (PR #5). M3 (PR #6): feedback já vi/quero/não curto, backup JSON e visual novo; Gemini real não testado.",
+    "Rafael (06/11) mandou o link da estante do Goodreads; redireciona para login (estante privada). Pedido o link RSS com key= ou estante pública."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -86,6 +87,6 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Ver os prints do PR #6 e mergear para aprovar o M3 (github.com/rpten/personal-ai-os/pull/6). Opcional: URL do RSS do Goodreads na issue #3."
+    "text": "Mergear o PR #6 para aprovar o M3 (github.com/rpten/personal-ai-os/pull/6) e, para livros automáticos, colar o link RSS do Goodreads (My Books → RSS no rodapé) no PR."
   }
 }
