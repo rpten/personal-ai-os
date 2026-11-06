@@ -8,7 +8,7 @@
 <section class="card"><h2>O que ver/ler agora?</h2>
 <label>Humor ou pedido (opcional) <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></label>
 <button id="rec" class="primary" style="margin-top:10px">Recomendar 5</button>
-<p id="recmsg" class="muted" aria-live="polite"></p><div id="recs"></div></section>
+<p id="recmsg" class="muted" aria-live="polite"></p><div id="recs"></div><div id="wants"></div></section>
 <section class="card"><h2>Atualizar dados</h2>
 <p id="status" class="muted"></p><p class="muted">Os feeds de Letterboxd e Goodreads são coletados de hora em hora pela fábrica; aqui você só puxa o mais recente.</p>
 <button id="sync" class="primary">Atualizar agora</button>
@@ -20,4 +20,8 @@
 <section class="card"><h2>Importar CSV (uma vez)</h2>
 <p class="muted">Letterboxd: <i>ratings.csv</i> do export. Goodreads: export da biblioteca. O tipo é detectado sozinho.</p>
 <input type="file" id="csv" accept=".csv,text/csv"><p id="csvmsg" class="muted"></p></section>
+<section class="card"><h2>Backup</h2>
+<p class="muted">Seus dados ficam só neste navegador. Baixe um backup para guardar ou levar a outro aparelho (a chave do Gemini não vai no arquivo).</p>
+<button id="export" class="primary">Exportar backup</button>
+<label>Restaurar backup <input type="file" id="import" accept=".json,application/json"></label><p id="bkmsg" class="muted"></p></section>
 </main><script type="module" src="app.js"></script></body></html>

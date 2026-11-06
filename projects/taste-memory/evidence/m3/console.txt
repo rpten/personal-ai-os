@@ -1,0 +1,1 @@
+sem erros de console (além dos 404 simulados do RSS)

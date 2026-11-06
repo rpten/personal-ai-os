@@ -1,0 +1,61 @@
+{
+ "app": "taste-memory",
+ "version": 1,
+ "exportedAt": "2026-11-06T00:43:52.853Z",
+ "items": [
+  {
+   "key": "f:parasita:2019",
+   "type": "film",
+   "title": "Parasita",
+   "year": 2019,
+   "author": "",
+   "rating": 4.5,
+   "date": "2020-01-05",
+   "source": "csv"
+  },
+  {
+   "key": "f:amelie a fabulosa:2001",
+   "type": "film",
+   "title": "Amélie, a Fabulosa",
+   "year": 2001,
+   "author": "",
+   "rating": 4,
+   "date": "2019-03-02",
+   "source": "csv"
+  },
+  {
+   "key": "f:sem nota:2010",
+   "type": "film",
+   "title": "Sem Nota",
+   "year": 2010,
+   "author": "",
+   "rating": null,
+   "date": "2018-07-01",
+   "source": "csv"
+  }
+ ],
+ "feedback": {
+  "f:filme novo 1:2001": {
+   "status": "seen",
+   "type": "film",
+   "title": "Filme Novo 1",
+   "year": 2001,
+   "author": ""
+  },
+  "f:filme novo 2:2002": {
+   "status": "want",
+   "type": "film",
+   "title": "Filme Novo 2",
+   "year": 2002,
+   "author": ""
+  },
+  "f:filme novo 3:2003": {
+   "status": "no",
+   "type": "film",
+   "title": "Filme Novo 3",
+   "year": 2003,
+   "author": ""
+  }
+ },
+ "lastSync": null
+}
