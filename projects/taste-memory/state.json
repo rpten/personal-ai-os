@@ -118,7 +118,8 @@
     "Rafael (06/11) reclamou de pedido de chave do Gemini. Verificado: site publicado e Worker sem campo de chave; Worker responde com Gemini real. Provável cache do navegador com versão antiga (M3).",
     "Rafael (06/11) pediu backlog de filmes e livros alimentado por 'Quero'; confirmado: indicações excluem visto/quero/não curto (limite 100). Pergunta q7 (A: M6 com abas de backlog ⭐ / B: só tirar limite).",
     "q6: Rafael escolheu A. Aberta issue `fabrica` #9: perfil em factory/profile/rafael.md publicado como JSON para os apps lerem. PR #8 (M5) segue aguardando merge.",
-    "q7: Rafael escolheu A. PR #8 (M5) já mergeado. M6 (PR #10): backlog com abas, já vi/li com nota, remover, 'tirar do backlog' via /pick; limite de 100 removido. Worker implantado e /pick testado com Gemini real (curl)."
+    "q7: Rafael escolheu A. PR #8 (M5) já mergeado. M6 (PR #10): backlog com abas, já vi/li com nota, remover, 'tirar do backlog' via /pick; limite de 100 removido. Worker implantado e /pick testado com Gemini real (curl).",
+    "M5 mergeado (PR #8)."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -129,8 +130,8 @@
     "text": "Revisar e mergear o PR do M6 (backlog): https://github.com/rpten/personal-ai-os/pull/10"
   },
   "last_event": {
-    "run_id": "42306946276",
-    "at": "2026-11-06T22:46:56Z",
-    "summary": "M6 (backlog de filmes e livros) pronto no PR #10; Worker implantado e testado."
+    "run_id": "42306974193",
+    "at": "2026-11-06T22:47:38Z",
+    "summary": "PR #8 (M5) mergeado; M6 segue aguardando aprovação no PR #10."
   }
 }
