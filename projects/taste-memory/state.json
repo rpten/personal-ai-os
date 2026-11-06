@@ -2,7 +2,7 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "delivered",
+  "status": "awaiting_milestone_approval",
   "previous_status": "delivered",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-06",
@@ -32,10 +32,15 @@
         "id": "q5",
         "question": "Como é o pedido de recomendação, de ponta a ponta?",
         "answer": "C) Escolhe filme/livro, humor opcional, 5 sugestões com justificativa; marca 'já vi/li', 'quero' ou 'não curto' para o app aprender"
+      },
+      {
+        "id": "q7",
+        "question": "Como fazer o backlog?",
+        "answer": "A) M6 com abas de backlog (filmes e livros), marcar visto/lido e remover"
       }
     ]
   },
-  "current_milestone": 4,
+  "current_milestone": 6,
   "milestones": [
     {
       "n": 1,
@@ -64,6 +69,20 @@
       "done_criteria": "Sinopse e 'por que você gostaria' com itens/notas reais; chat por indicação; Worker taste-memory-recs com GEMINI_API_KEY como segredo; app sem chave",
       "status": "done",
       "pr": 7
+    },
+    {
+      "n": 5,
+      "title": "Indicações sem pedir direcionamento + progresso visível",
+      "done_criteria": "Botão 'Me indique 5', humor opcional, progresso visível",
+      "status": "done",
+      "pr": 8
+    },
+    {
+      "n": 6,
+      "title": "Backlog de filmes e livros",
+      "done_criteria": "Abas 🎬/📚 alimentadas por 'Quero', já vi/li com nota, remover, tirar do backlog por humor; limite de 100 removido",
+      "status": "awaiting_approval",
+      "pr": 10
     }
   ],
   "preview_url": "https://rpten.github.io/personal-ai-os/taste-memory/",
@@ -98,7 +117,8 @@
     "M4 mergeado (PR #7). v1.1 entregue: indicações argumentadas + chat via Worker taste-memory-recs.",
     "Rafael (06/11) reclamou de pedido de chave do Gemini. Verificado: site publicado e Worker sem campo de chave; Worker responde com Gemini real. Provável cache do navegador com versão antiga (M3).",
     "Rafael (06/11) pediu backlog de filmes e livros alimentado por 'Quero'; confirmado: indicações excluem visto/quero/não curto (limite 100). Pergunta q7 (A: M6 com abas de backlog ⭐ / B: só tirar limite).",
-    "q6: Rafael escolheu A. Aberta issue `fabrica` #9: perfil em factory/profile/rafael.md publicado como JSON para os apps lerem. PR #8 (M5) segue aguardando merge."
+    "q6: Rafael escolheu A. Aberta issue `fabrica` #9: perfil em factory/profile/rafael.md publicado como JSON para os apps lerem. PR #8 (M5) segue aguardando merge.",
+    "q7: Rafael escolheu A. PR #8 (M5) já mergeado. M6 (PR #10): backlog com abas, já vi/li com nota, remover, 'tirar do backlog' via /pick; limite de 100 removido. Worker implantado e /pick testado com Gemini real (curl)."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -106,11 +126,11 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Responder a pergunta q7 na issue #7 e mergear o PR #8: https://github.com/rpten/personal-ai-os/pull/8"
+    "text": "Revisar e mergear o PR do M6 (backlog): https://github.com/rpten/personal-ai-os/pull/10"
   },
   "last_event": {
-    "run_id": "42305824999",
-    "at": "2026-11-06T22:36:38Z",
-    "summary": "Abri a issue fabrica #9 para o perfil do Rafael; PR #8 e pergunta q7 aguardam resposta."
+    "run_id": "42306946276",
+    "at": "2026-11-06T22:46:56Z",
+    "summary": "M6 (backlog de filmes e livros) pronto no PR #10; Worker implantado e testado."
   }
 }
