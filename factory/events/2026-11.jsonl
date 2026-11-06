@@ -1,3 +1,4 @@
 {"at": "2026-11-06T19:56:33Z", "run_id": "migracao-p0", "event": "migracao", "key": "", "slug": "", "issue": null, "outcome": "done", "summary": "Fábrica P0: estados explícitos, verificação de resultado, ledger de eventos e retomada automática."}
 {"at": "2026-11-06T19:58:44Z", "run_id": "42284229037", "event": "push/", "key": "", "slug": "taste-memory", "issue": 3, "outcome": "waiting", "summary": "Corrigida a ordem: segredos e 'pronto' primeiro, deploy e teste real depois, merge do PR #7 por último."}
 {"at": "2026-11-06T20:00:17Z", "run_id": "42284451246", "event": "push/", "key": "", "slug": "teste-p0-falha", "issue": null, "outcome": "failed", "summary": "o projeto `teste-p0-falha` não tem state.json em main"}
+{"at": "2026-11-06T20:00:51Z", "run_id": "manutencao", "event": "manutencao", "key": "", "slug": "", "issue": null, "outcome": "done", "summary": "Teste controlado do caminho de falha concluído: o ❌ anterior foi proposital e funcionou como esperado."}
