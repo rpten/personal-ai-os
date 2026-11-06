@@ -5,7 +5,7 @@
   "status": "awaiting_milestone_approval",
   "previous_status": "executing",
   "created_at": "2026-11-05",
-  "updated_at": "2026-11-05",
+  "updated_at": "2026-11-06",
   "discovery": {
     "answers": [
       {
@@ -35,7 +35,7 @@
       }
     ]
   },
-  "current_milestone": 2,
+  "current_milestone": 3,
   "milestones": [
     {
       "n": 1,
@@ -48,15 +48,15 @@
       "n": 2,
       "title": "Pedido de recomendação com Gemini + coleta via sync",
       "done_criteria": "Filme/livro + humor opcional geram 5 sugestões com justificativa; erros tratados",
-      "status": "awaiting_approval",
+      "status": "done",
       "pr": 5
     },
     {
       "n": 3,
       "title": "Feedback de sugestões",
       "done_criteria": "Marcações já vi/li, quero, não curto persistem e influenciam o próximo pedido; botão de exportar/importar backup",
-      "status": "pending",
-      "pr": null
+      "status": "awaiting_approval",
+      "pr": 6
     }
   ],
   "preview_url": null,
@@ -77,7 +77,8 @@
     "Plano aprovado por Rafael; M1 executado (PR #4). Worker não implantado/testado com rede real; fica como ação de Rafael.",
     "Rafael (via Claude, 05/11): trocar o Cloudflare Worker pela workflow `sync` da fábrica (projects/taste-memory/sync/run.sh busca os RSS de hora em hora e grava JSON em public/data). Sem conta nova. Fazer no M2, junto com o Gemini; remover o Worker e o campo 'URL do Worker'.",
     "Rafael (05/11): visual do M1 está feio; tratar no M3.",
-    "M1 mergeado (PR #4). M2 (PR #5): Gemini (só simulado) + Worker removido, coleta via workflow sync. Letterboxd real OK; RSS do Goodreads dá 404 (livros por CSV até Rafael passar a URL do feed)."
+    "M1 mergeado (PR #4). M2 (PR #5): Gemini (só simulado) + Worker removido, coleta via workflow sync. Letterboxd real OK; RSS do Goodreads dá 404 (livros por CSV até Rafael passar a URL do feed).",
+    "M2 mergeado (PR #5). M3 (PR #6): feedback já vi/quero/não curto, backup JSON e visual novo; Gemini real não testado."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -85,6 +86,6 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Ver os prints do PR #5 e mergear para aprovar o M2 (github.com/rpten/personal-ai-os/pull/5). Opcional: passar a URL do RSS do Goodreads na issue #3."
+    "text": "Ver os prints do PR #6 e mergear para aprovar o M3 (github.com/rpten/personal-ai-os/pull/6). Opcional: URL do RSS do Goodreads na issue #3."
   }
 }
