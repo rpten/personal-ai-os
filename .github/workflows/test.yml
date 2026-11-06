@@ -1,0 +1,34 @@
+name: test
+
+# Regressão da fábrica: roda em toda mudança de protocolo, scripts, workflows
+# ou estado. Falha = vermelho + notificação; rollback = `git revert` do commit
+# (ou voltar à tag factory-v* anterior).
+on:
+  push:
+    branches: [main]
+    paths: ["factory/**", ".github/**", "CLAUDE.md", "projects/*/state.json"]
+  pull_request:
+    paths: ["factory/**", ".github/**", "CLAUDE.md", "projects/*/state.json"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet jsonschema pytest playwright
+      - name: Testes (guard, verificador, transições, ledger, estados reais)
+        run: python -m pytest -q factory/tests
+      - name: Lint das workflows
+        run: |
+          curl -sSL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz | tar xz actionlint
+          ./actionlint
+      - name: Painel gera sem erro
+        run: python factory/scripts/build_site.py

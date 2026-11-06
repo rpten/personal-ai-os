@@ -68,5 +68,10 @@
   "next_action": {
     "owner": "agente",
     "text": "Encerrado. Substituído por taste-memory (issue #3)."
+  },
+  "last_event": {
+    "run_id": "migracao-p0",
+    "at": "2026-11-06T19:56:33Z",
+    "summary": "Encerrado; substituído por taste-memory."
   }
 }

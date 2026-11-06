@@ -62,7 +62,7 @@
       "n": 4,
       "title": "Indicações argumentadas + chat via Worker (chave só no servidor)",
       "done_criteria": "Sinopse e 'por que você gostaria' com itens/notas reais; chat por indicação; Worker taste-memory-recs com GEMINI_API_KEY como segredo; app sem chave",
-      "status": "in_review",
+      "status": "awaiting_approval",
       "pr": 7
     }
   ],
@@ -102,5 +102,10 @@
     "owner": "rafael",
     "text": "Ver os prints e mergear o PR #7 (e criar os 3 segredos conforme a issue #3): https://github.com/rpten/personal-ai-os/pull/7"
   },
-  "pending_task": "deploy do Worker + teste real do M4"
+  "pending_task": "deploy do Worker + teste real do M4",
+  "last_event": {
+    "run_id": "migracao-p0",
+    "at": "2026-11-06T19:56:33Z",
+    "summary": "Migração P0: estado alinhado ao schema (marco 4 aguardando aprovação)."
+  }
 }

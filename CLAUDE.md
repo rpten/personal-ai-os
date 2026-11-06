@@ -13,10 +13,17 @@ Idioma: **português do Brasil** em tudo que Rafael lê. Seja curto: ele lê no 
 - `projects/<slug>/evidence/m<N>/` — prints e relatórios de QA de cada marco.
 - `factory/config.json` — limites (WIP, marcos, turnos).
 - A issue do projeto é o canal de conversa com Rafael. PRs são marcos.
+- `factory/events/*.jsonl` — ledger de eventos (escrito pelo guard e pelo verificador, **nunca** pelo agente).
+- `docs/blueprint.md` — arquitetura-alvo; `docs/auditoria.md` — o que existe vs. o alvo.
 
 Sempre leia o `state.json` antes de agir e grave-o (commit em `main`) ao final de cada execução. Nunca deixe o estado divergente do que foi comunicado.
 
-**Próxima ação (obrigatório):** ao fim de toda execução, preencha `state.next_action` = `{"owner": "rafael" | "agente", "text": "<uma ação concreta, com link>"}`. O painel mostra isso. Rafael nunca deve precisar perguntar "e agora?".
+**Fechamento obrigatório de toda execução** (o verificador confere em `main`; se faltar, a execução é marcada como falha e Rafael é avisado):
+- `state.last_event` = `{"run_id": "<run_id do prompt>", "at": "<agora, ISO UTC>", "summary": "<uma frase humana do que foi feito>"}`. O `summary` vira o histórico do painel.
+- `state.next_action` = `{"owner": "rafael" | "agente", "text": "<uma ação concreta, com link>"}`. Rafael nunca deve precisar perguntar "e agora?".
+- `state.status` só muda por transições permitidas (`factory/scripts/common.py: TRANSITIONS`); status de marco só `pending`, `in_progress`, `awaiting_approval`, `done`.
+
+**Eventos perdidos:** antes de agir, leia a thread da issue e os PRs do projeto e trate qualquer ação de Rafael posterior a `last_event.at` que ainda não foi atendida (dois cliques rápidos podem chegar numa execução só).
 
 ## 2. Ciclo de vida (`status`)
 

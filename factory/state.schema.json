@@ -138,7 +138,40 @@
         "text": {
           "type": "string"
         }
+      },
+      "required": [
+        "owner",
+        "text"
+      ]
+    },
+    "last_event": {
+      "type": "object",
+      "required": [
+        "run_id",
+        "at",
+        "summary"
+      ],
+      "properties": {
+        "run_id": {
+          "type": [
+            "string",
+            "integer"
+          ]
+        },
+        "at": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
       }
+    },
+    "pending_task": {
+      "type": [
+        "string",
+        "object",
+        "null"
+      ]
     }
   }
 }

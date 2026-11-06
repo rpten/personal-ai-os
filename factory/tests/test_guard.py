@@ -1,49 +1,7 @@
-"""Testes da guarda da fábrica: cada evento real que importa tem um caso aqui."""
-import importlib
-import json
-import sys
-from pathlib import Path
-
+"""Testes da guarda: cada evento real que importa tem um caso aqui."""
 import pytest
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
-REPO, OWNER = "rpten/personal-ai-os", "rpten"
-
-
-@pytest.fixture
-def env(tmp_path, monkeypatch):
-    (tmp_path / "factory").mkdir()
-    cfg = json.loads((SCRIPTS.parent / "config.json").read_text())
-    (tmp_path / "factory/config.json").write_text(json.dumps(cfg))
-    (tmp_path / "projects").mkdir()
-    monkeypatch.setenv("FACTORY_ROOT", str(tmp_path))
-    monkeypatch.setenv("FACTORY_DRY", "1")
-    monkeypatch.delenv("FACTORY_FAKE_ISSUES", raising=False)
-    sys.path.insert(0, str(SCRIPTS))
-    import guard
-    importlib.reload(guard)
-
-    class E:
-        g = guard
-        root = tmp_path
-
-        def project(self, slug, issue, status="discovery", prs=()):
-            d = tmp_path / "projects" / slug
-            d.mkdir()
-            (d / "state.json").write_text(json.dumps({
-                "slug": slug, "title": slug, "issue": issue, "status": status,
-                "milestones": [{"n": i + 1, "title": "m", "status": "pending", "pr": p} for i, p in enumerate(prs)]}))
-
-        def issues(self, items):
-            p = tmp_path / "issues.json"
-            p.write_text(json.dumps(items))
-            monkeypatch.setenv("FACTORY_FAKE_ISSUES", str(p))
-
-        def decide(self, name, event):
-            event.setdefault("sender", {"login": OWNER})
-            return guard.decide(name, event, REPO, OWNER, guard.load_states())
-
-    return E()
+from conftest import OWNER
 
 
 def issue_ev(n, labels=(), action="opened"):
@@ -73,7 +31,7 @@ def test_wip_cheio_enfileira_com_comentario(env):
     env.project("a", 1)
     with pytest.raises(env.g.Skip):
         env.decide("issues", issue_ev(2))
-    cmds = [" ".join(c) for c in env.g.GH_LOG]
+    cmds = [" ".join(c) for c in env.c.GH_LOG]
     assert any("--add-label fila" in c for c in cmds)
     assert any(c.startswith("issue comment 2") for c in cmds)
 
@@ -114,7 +72,7 @@ def test_reconcilia_com_wip_cheio_enfileira(env):
     env.issues([{"number": 1, "labels": []}, {"number": 2, "labels": []}])
     with pytest.raises(env.g.Skip):
         env.decide("schedule", {})
-    assert any("--add-label" in " ".join(c) and c[2] == "2" for c in env.g.GH_LOG)
+    assert any("--add-label" in " ".join(c) and c[2] == "2" for c in env.c.GH_LOG)
 
 
 def test_reconcilia_nao_recomenta_quem_ja_esta_na_fila(env):
@@ -122,7 +80,7 @@ def test_reconcilia_nao_recomenta_quem_ja_esta_na_fila(env):
     env.issues([{"number": 2, "labels": [{"name": "fila"}]}])
     with pytest.raises(env.g.Skip):
         env.decide("schedule", {})
-    assert not any(c[:2] == ["issue", "comment"] for c in env.g.GH_LOG)
+    assert not any(c[:2] == ["issue", "comment"] for c in env.c.GH_LOG)
 
 
 def test_dispatch_com_instrucao(env):
@@ -191,3 +149,85 @@ def test_inbox_vazia_segue_reconciliacao(env):
     (env.root / "factory/inbox").mkdir()
     env.issues([{"number": 9, "labels": []}])
     assert env.decide("push", {})[2] == 9
+
+
+# --- idempotência, falhas, eventos perdidos (P0) ---------------------------
+
+def test_evento_ja_concluido_nao_roda_de_novo(env):
+    env.project("a", 1, last_at="2026-11-06T00:00:00Z")
+    ev = issue_ev(1, action="labeled"); ev["label"] = {"name": "aprovado"}
+    key = env.g.event_key("issues", ev)
+    env.ledger([{"key": key, "outcome": "done", "at": "t"}])
+    out = env.run_main("issues", ev)
+    assert out["run"] == "false"
+
+
+def test_evento_que_falhou_pode_rodar_de_novo(env):
+    env.project("a", 1, last_at="2026-11-06T00:00:00Z")
+    ev = issue_ev(1, action="labeled"); ev["label"] = {"name": "aprovado"}
+    env.ledger([{"key": env.g.event_key("issues", ev), "outcome": "failed", "at": "t", "slug": "a"}])
+    assert env.run_main("issues", ev)["run"] == "true"
+
+
+def test_edicoes_diferentes_tem_chaves_diferentes(env):
+    a = edit_ev(1, "", BLOCK.format(a="x", b=" ")); a["comment"]["id"] = 5
+    b = edit_ev(1, "", BLOCK.format(a="x", b="x")); b["comment"]["id"] = 5
+    assert env.g.event_key("issue_comment", a) != env.g.event_key("issue_comment", b)
+
+
+def test_ignorado_vai_para_o_ledger_com_motivo(env):
+    env.project("a", 1)
+    same = BLOCK.format(a="x", b=" ")
+    out = env.run_main("issue_comment", edit_ev(1, same, same))
+    assert out["run"] == "false"
+    rec = env.c.read_ledger()[-1]
+    assert rec["outcome"] == "ignored" and "nenhuma opção" in rec["summary"]
+
+
+def test_label_em_issue_sem_projeto_avisa_na_issue(env):
+    ev = issue_ev(4, action="labeled"); ev["label"] = {"name": "aprovado"}
+    env.run_main("issues", ev)
+    assert any(c[:3] == ["issue", "comment", "4"] for c in env.c.GH_LOG)
+
+
+def test_wip_cheio_registra_fila(env):
+    env.project("a", 1)
+    env.run_main("issues", issue_ev(2))
+    assert env.c.read_ledger()[-1]["outcome"] == "queued"
+
+
+def test_reconciliacao_retoma_evento_perdido(env):
+    env.project("a", 1, status="awaiting_milestone_approval", last_at="2026-11-06T10:00:00Z")
+    env.issues([])
+    env.activity({"a": "2026-11-06T11:00:00Z"})
+    detail, slug, _ = env.decide("schedule", {})
+    assert slug == "a" and "Retomada" in detail
+
+
+def test_reconciliacao_sem_atividade_nova_nao_roda(env):
+    env.project("a", 1, status="awaiting_milestone_approval", last_at="2026-11-06T10:00:00Z")
+    env.issues([])
+    env.activity({"a": "2026-11-06T09:00:00Z"})
+    with pytest.raises(env.g.Skip):
+        env.decide("schedule", {})
+
+
+def test_reconciliacao_para_apos_3_falhas(env):
+    env.project("a", 1, status="executing", last_at="2026-11-06T10:00:00Z")
+    env.issues([])
+    env.activity({"a": "2026-11-06T11:00:00Z"})
+    env.ledger([{"slug": "a", "outcome": "failed", "at": "t"}] * 3)
+    with pytest.raises(env.g.Skip):
+        env.decide("schedule", {})
+
+
+def test_saidas_de_execucao_completas(env):
+    out = env.run_main("issues", issue_ev(1))
+    assert out["run"] == "true" and out["expect_issue"] == "1" and out["issue"] == "1"
+    assert out["react_path"].endswith("/issues/1/reactions") and "last_event" in out["prompt"] and "99" in out["prompt"]
+
+
+def test_automatico_sem_pendencias_nao_suja_ledger(env):
+    env.issues([])
+    assert env.run_main("schedule", {})["run"] == "false"
+    assert env.c.read_ledger() == []

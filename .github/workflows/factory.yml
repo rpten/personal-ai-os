@@ -9,7 +9,7 @@ on:
     types: [closed]
   pull_request_review:
     types: [submitted]
-  # Reconciliação: inicia ideias que ainda não viraram projeto.
+  # Reconciliação: caixa de entrada, ideias não iniciadas e eventos perdidos.
   push:
     branches: [main]
   schedule:
@@ -24,54 +24,75 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  id-token: write
   actions: write
 
-# Uma execução por vez no repositório inteiro: evita duas sessões
-# escrevendo state.json ao mesmo tempo. Eventos ficam enfileirados.
-concurrency:
-  group: factory
-  cancel-in-progress: false
-
 jobs:
-  run:
-    # Só o dono do repositório aciona a fábrica (o repo pode ser público).
+  # Decide, sem LLM, se o agente roda. Quando não roda, o job "agent" aparece
+  # como pulado (cinza) e o motivo fica no resumo da execução e no ledger.
+  guard:
+    # Só o dono do repositório aciona a fábrica (o repo é público).
     if: contains(fromJSON('["push","schedule","workflow_dispatch"]'), github.event_name) || github.event.sender.login == github.repository_owner
     runs-on: ubuntu-latest
-    # Teto rígido do job; o agente mira config.run_timeout_minutes (90).
-    timeout-minutes: 100
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.guard.outputs.run }}
+      slug: ${{ steps.guard.outputs.slug }}
+      prompt: ${{ steps.guard.outputs.prompt }}
+      max_turns: ${{ steps.guard.outputs.max_turns }}
+      expect_issue: ${{ steps.guard.outputs.expect_issue }}
+      key: ${{ steps.guard.outputs.key }}
+      react_path: ${{ steps.guard.outputs.react_path }}
+      prev_status: ${{ steps.guard.outputs.prev_status }}
+      issue: ${{ steps.guard.outputs.issue }}
+      inbox_path: ${{ steps.guard.outputs.inbox_path }}
+      event: ${{ steps.guard.outputs.event }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
+      - run: pip install --quiet jsonschema pytest
       - name: Testes da fábrica
-        run: |
-          pip install --quiet pytest
-          python -m pytest -q factory/tests
-
-      - name: Guard (decide se o agente acorda)
+        run: python -m pytest -q factory/tests
+      - name: Guard
         id: guard
         env:
           GH_TOKEN: ${{ github.token }}
         run: python factory/scripts/guard.py
 
+  agent:
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    # Teto rígido; o agente mira config.run_timeout_minutes (90).
+    timeout-minutes: 100
+    # Um projeto por vez (ideias novas e instruções gerais compartilham "new").
+    concurrency:
+      group: factory-${{ needs.guard.outputs.slug || 'new' }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet jsonschema
+
+      - name: Sinalizar execução (👀)
+        if: needs.guard.outputs.react_path != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "${{ needs.guard.outputs.react_path }}" -f content=eyes || true
+
       - name: Configurar git
-        if: steps.guard.outputs.run == 'true'
         run: |
           git config user.name "factory-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # Claude Code CLI direto (sem ação intermediária): saída completa
-      # gravada em agent.jsonl para diagnóstico. O navegador de QA não é
-      # instalado aqui; o agente usa o Chrome do runner só quando precisa.
+      # Claude Code CLI direto: saída completa em agent.jsonl para diagnóstico.
       - name: Agente (Claude Code)
         id: agent
-        if: steps.guard.outputs.run == 'true'
         continue-on-error: true
         timeout-minutes: 92
         env:
@@ -81,8 +102,8 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          PROMPT: ${{ steps.guard.outputs.prompt }}
-          MAX_TURNS: ${{ steps.guard.outputs.max_turns }}
+          PROMPT: ${{ needs.guard.outputs.prompt }}
+          MAX_TURNS: ${{ needs.guard.outputs.max_turns }}
         run: |
           set -o pipefail
           if [ -n "$SECRET_API_KEY" ]; then export ANTHROPIC_API_KEY="$SECRET_API_KEY"; fi
@@ -97,19 +118,23 @@ jobs:
             --allowedTools "Bash" "Read" "Write" "Edit" "Glob" "Grep" "WebFetch" "WebSearch" "TodoWrite" \
             --output-format stream-json --verbose 2>&1 | tee "$RUNNER_TEMP/agent.jsonl"
 
-      # Falha visível: job vermelho + comentário na issue se o agente
-      # falhou ou se a ideia não virou projeto.
+      # Verde só se o trabalho foi registrado em main; senão vermelho + aviso.
       - name: Verificar resultado
-        id: verify
-        if: steps.guard.outputs.run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python factory/scripts/verify.py "${{ steps.agent.outcome }}" "${{ steps.guard.outputs.expect_issue }}"
+          AGENT_OUTCOME: ${{ steps.agent.outcome }}
+          SLUG: ${{ needs.guard.outputs.slug }}
+          EXPECT_ISSUE: ${{ needs.guard.outputs.expect_issue }}
+          PREV_STATUS: ${{ needs.guard.outputs.prev_status }}
+          KEY: ${{ needs.guard.outputs.key }}
+          REACT_PATH: ${{ needs.guard.outputs.react_path }}
+          ISSUE: ${{ needs.guard.outputs.issue }}
+          INBOX_PATH: ${{ needs.guard.outputs.inbox_path }}
+          EVENT: ${{ needs.guard.outputs.event }}
+        run: python factory/scripts/verify.py
 
-      # Diagnóstico persistente: em falha, a saída do agente vai para o
-      # branch `diagnostics` (legível sem a interface do Actions).
       - name: Salvar diagnóstico
-        if: failure() && steps.guard.outputs.run == 'true'
+        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
@@ -122,10 +147,9 @@ jobs:
           git add runs && git -c user.name=factory-bot -c user.email=factory-bot@users.noreply.github.com commit -qm "diagnóstico $RUN_ID"
           git push -q origin HEAD:diagnostics
 
-      # Commits feitos com GITHUB_TOKEN não disparam outras workflows;
-      # workflow_dispatch é a exceção, então o painel é republicado aqui.
+      # Commits com GITHUB_TOKEN não disparam workflows; workflow_dispatch sim.
       - name: Republicar painel
-        if: always() && steps.guard.outputs.run == 'true'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml -R "$GITHUB_REPOSITORY" || true

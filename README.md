@@ -29,7 +29,11 @@ Sem servidor próprio, sem banco, sem segundo app para manter.
 
 Limite padrão: 1 projeto ativo (`factory/config.json`). Ideias extras entram na fila e começam sozinhas.
 
-Nada fica parado em silêncio: a fábrica revisa a cada hora (e a cada mudança no repo) se alguma ideia ainda não começou. Se uma execução falhar, o job fica vermelho, o GitHub te notifica e a issue recebe um comentário com o motivo.
+Nada fica parado em silêncio:
+- 👀 na sua issue/comentário = a fábrica está executando; 🚀 = terminou; 😕 = falhou (com comentário explicando e nova tentativa automática).
+- Toda execução só fica verde se o trabalho foi registrado no estado do projeto; quando o guard decide não executar, o job do agente aparece como pulado e o motivo fica no histórico.
+- A cada hora (e a cada mudança no repo) a fábrica retoma ideias não iniciadas, instruções da caixa de entrada e ações suas que se perderam.
+- Painel: o que precisa de você, estado de cada projeto e histórico em linguagem humana.
 
 ## Configuração única
 
