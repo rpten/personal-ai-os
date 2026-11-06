@@ -113,3 +113,61 @@ export function summarize(list, type) {
     top: type === "book" ? count((i) => i.author) : count((i) => (i.year ? `${Math.floor(i.year / 10) * 10}s` : "")),
   };
 }
+
+// ---- M2: recomendação com Gemini ----
+export const GEMINI_MODEL = "gemini-2.5-flash";
+const line = (i) => `- ${i.title}${i.year ? ` (${i.year})` : ""}${i.author ? ` — ${i.author}` : ""}${i.rating ? ` · nota ${i.rating}/5` : ""}`;
+
+export function buildPrompt(list, type, mood = "") {
+  const all = list.filter((i) => i.type === type), kind = type === "film" ? "filmes" : "livros";
+  const rated = all.filter((i) => i.rating);
+  const byRating = (a, b) => b.rating - a.rating;
+  const loved = rated.filter((i) => i.rating >= 4).sort(byRating).slice(0, 25);
+  const disliked = rated.filter((i) => i.rating <= 2.5).sort((a, b) => a.rating - b.rating).slice(0, 15);
+  const seen = all.map((i) => i.title).slice(0, 400).join("; ");
+  return `Você é um curador de ${kind}. Recomende exatamente 5 ${kind} para esta pessoa, com base no gosto dela.
+Gostou muito:
+${loved.map(line).join("\n") || "(sem dados)"}
+Não gostou:
+${disliked.map(line).join("\n") || "(sem dados)"}
+Já ${type === "film" ? "viu" : "leu"} (NÃO recomende nenhum destes): ${seen || "(nada)"}
+${mood.trim() ? `Humor/pedido de agora: ${mood.trim().slice(0, 200)}\n` : ""}Use apenas ${kind} que realmente existem; se não tiver certeza do ano ou autor, deixe o campo vazio.
+Responda SOMENTE com JSON: [{"title":"","year":0,"author":"","why":"justificativa de 1-2 frases em português do Brasil ligada ao gosto dela"}] (author só para livros).`;
+}
+
+export function parseSuggestions(text, list = [], type = "film") {
+  let t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const a = t.indexOf("["), b = t.lastIndexOf("]");
+  if (a < 0 || b < a) throw new Error("resposta sem lista de sugestões");
+  let arr; try { arr = JSON.parse(t.slice(a, b + 1)); } catch { throw new Error("resposta em formato inválido"); }
+  const seen = new Set(list.filter((i) => i.type === type).map((i) => norm(i.title)));
+  const out = arr.filter((s) => s && typeof s.title === "string" && s.title.trim()).map((s) => ({
+    title: s.title.trim(), year: num(String(s.year ?? "")), author: String(s.author || "").trim(), why: String(s.why || "").trim(),
+  })).filter((s) => !seen.has(norm(s.title)));
+  if (!out.length) throw new Error("nenhuma sugestão nova (todas já estavam no seu histórico)");
+  return out.slice(0, 5);
+}
+
+export function geminiError(status, body = "") {
+  if (status === 400 && /API key|API_KEY/i.test(body)) return "Chave do Gemini inválida. Confira em Configurações.";
+  if (status === 401 || status === 403) return "Chave do Gemini recusada. Confira em Configurações.";
+  if (status === 429) return "Limite gratuito do Gemini atingido. Tente de novo em alguns minutos.";
+  if (status >= 500) return "O Gemini está fora do ar agora. Tente de novo em instantes.";
+  return `Erro do Gemini (HTTP ${status}).`;
+}
+
+export async function recommend({ key, list, type, mood, fetchFn = fetch }) {
+  if (!key) throw new Error("Informe a chave do Gemini em Configurações.");
+  let r;
+  try {
+    r = await fetchFn(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({ contents: [{ parts: [{ text: buildPrompt(list, type, mood) }] }], generationConfig: { responseMimeType: "application/json", temperature: 0.8 } }),
+    });
+  } catch { throw new Error("Sem conexão com o Gemini."); }
+  if (!r.ok) throw new Error(geminiError(r.status, await r.text().catch(() => "")));
+  const data = await r.json().catch(() => null);
+  const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
+  if (!text) throw new Error(data?.promptFeedback?.blockReason ? "O Gemini bloqueou o pedido. Mude o humor e tente de novo." : "O Gemini não devolveu resposta.");
+  return parseSuggestions(text, list, type);
+}
