@@ -156,22 +156,26 @@ def serve(root):
     return srv, f"http://127.0.0.1:{srv.server_port}"
 
 
-def add_routes(page, routes):
+def add_routes(page, routes, simulated=None):
     """Simula a rede: resposta fixa (status/json/body) ou `"hold": true` para segurar a
     requisição sem responder (estado de carregamento)."""
     for rt in routes or []:
         if rt.get("hold"):
-            page.route(rt["match"], lambda route: None)
+            page.route(rt["match"], lambda route, request=None: None)
             continue
 
-        def handler(route, rt=rt):
-            headers = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*"}
-            if route.request.method == "OPTIONS":
-                return route.fulfill(status=204, headers=headers)
-            body = json.dumps(rt["json"]) if "json" in rt else rt.get("body", "")
-            ctype = "application/json" if "json" in rt else rt.get("content_type", "text/plain")
-            route.fulfill(status=rt.get("status", 200), headers={**headers, "Content-Type": ctype}, body=body)
-        page.route(rt["match"], handler)
+        def make_handler(rt):
+            def handler(route, request=None):
+                if simulated is not None:
+                    simulated.add(route.request.url)
+                headers = {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*"}
+                if route.request.method == "OPTIONS":
+                    return route.fulfill(status=204, headers=headers)
+                body = json.dumps(rt["json"]) if "json" in rt else rt.get("body", "")
+                ctype = "application/json" if "json" in rt else rt.get("content_type", "text/plain")
+                route.fulfill(status=rt.get("status", 200), headers={**headers, "Content-Type": ctype}, body=body)
+            return handler
+        page.route(rt["match"], make_handler(rt))
 
 
 def run_step(page, step, base_dir):
@@ -221,8 +225,12 @@ def run(public, out, flows_file=None, commit=""):
                     console = []
                     page.on("console", lambda m: console.append(m.text) if m.type == "error" else None)
                     page.on("pageerror", lambda e: console.append(f"pageerror: {e}"))
-                    add_routes(page, cfg.get("routes"))
-                    add_routes(page, flow.get("routes"))
+                    failed = []
+                    page.on("response", lambda r: failed.append(f"HTTP {r.status} {r.url}")
+                            if r.status >= 400 and not r.url.endswith("/favicon.ico") else None)
+                    simulated = set()  # respostas simuladas de propósito (ex.: 404 para "sem dados")
+                    add_routes(page, cfg.get("routes"), simulated)
+                    add_routes(page, flow.get("routes"), simulated)
                     name = f"{slug(flow['name'])}-{vp_name}"
                     rec = {"flow": flow["name"], "viewport": vp_name, "screenshot": f"{name}.png", "issues": []}
                     try:
@@ -242,11 +250,16 @@ def run(public, out, flows_file=None, commit=""):
                             page.screenshot(path=str(out / rec["screenshot"]), full_page=True)
                         except Exception:
                             pass
+                    # "Failed to load resource" do console não diz a URL: usamos as respostas HTTP.
                     for msg in console:
-                        if "Failed to load resource" in msg and "favicon" in msg:
-                            continue
-                        rec["issues"].append({"severity": "blocking", "rule": "erro-console", "selector": None,
-                                              "text": "", "detail": msg[:200]})
+                        if not msg.startswith("Failed to load resource"):
+                            rec["issues"].append({"severity": "blocking", "rule": "erro-console", "selector": None,
+                                                  "text": "", "detail": msg[:200]})
+                    for msg in failed:
+                        url = msg.split(" ", 2)[2]
+                        if url not in simulated:
+                            rec["issues"].append({"severity": "blocking", "rule": "recurso-falhou", "selector": None,
+                                                  "text": "", "detail": msg[:200]})
                     results.append(rec)
                     ctx.close()
             browser.close()
