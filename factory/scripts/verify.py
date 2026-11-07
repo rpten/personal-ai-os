@@ -17,6 +17,7 @@ ISSUE, EVENT, INBOX_PATH, GITHUB_RUN_ID, GITHUB_REPOSITORY.
 """
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -48,6 +49,104 @@ def path_exists_in_main(path, ref="origin/main"):
         return (common.ROOT / path).exists()
     return subprocess.run(["git", "-C", str(common.ROOT), "cat-file", "-e", f"{ref}:{path}"],
                           capture_output=True).returncode == 0
+
+
+FRONTEND_RE = re.compile(r"\.(html?|css|jsx?|tsx?|mjs|vue|svelte)$")
+DESIGN_SECTIONS = {"design/brief.md": ["## Brief", "## Direção", "## UX"]}
+REVIEW_SECTIONS = ["## Problemas", "## Correções", "## Revalidação"]
+
+
+def git(*a):
+    return subprocess.run(["git", "-C", str(common.ROOT), *a], capture_output=True, text=True)
+
+
+def frontend_changed(slug, branch, base="origin/main"):
+    names = git("diff", "--name-only", f"{base}...origin/{branch}").stdout.split()
+    return [n for n in names if n.startswith(f"projects/{slug}/public/") or
+            (n.startswith(f"projects/{slug}/") and FRONTEND_RE.search(n) and "/test" not in n and "/worker/" not in n)]
+
+
+def design_gate(slug, n, read_file, run_qa):
+    """Problemas do portão de design de um marco com mudança de interface. Lista vazia = ok.
+    read_file(path) -> texto ou None; run_qa() -> relatório do visual_qa."""
+    probs = []
+    base = f"projects/{slug}/"
+    brief = read_file(base + "design/brief.md")
+    if brief is None:
+        probs.append("falta design/brief.md (brief, direção e UX)")
+    else:
+        miss = [h for h in DESIGN_SECTIONS["design/brief.md"] if h not in brief]
+        if miss:
+            probs.append("design/brief.md sem as seções " + ", ".join(miss))
+    flows = read_file(base + "design/flows.json")
+    if flows is None:
+        probs.append("falta design/flows.json (fluxos e estados para o QA visual)")
+    else:
+        try:
+            json.loads(flows)
+        except json.JSONDecodeError:
+            probs.append("design/flows.json inválido")
+    review = read_file(base + f"evidence/m{n}/design-review.md")
+    if review is None:
+        probs.append(f"falta evidence/m{n}/design-review.md (inspeção dos prints, correções e revalidação)")
+    else:
+        miss = [h for h in REVIEW_SECTIONS if h not in review]
+        if miss:
+            probs.append("design-review.md sem as seções " + ", ".join(miss))
+    if flows is not None and not probs:
+        rep = run_qa()
+        if rep.get("blocking"):
+            tops = sorted({i["rule"] for r in rep["results"] for i in r["issues"] if i["severity"] == "blocking"})
+            probs.append(f"QA visual com {rep['blocking']} bloqueante(s): {', '.join(tops)}")
+    return probs
+
+
+def gate_applies(head_iso):
+    """O portão vale para trabalho feito depois de config.design_gate_since."""
+    from datetime import datetime
+    since = common.CONFIG.get("design_gate_since")
+    if not since or not head_iso:
+        return True
+    parse = lambda t: datetime.fromisoformat(t.replace("Z", "+00:00"))
+    return parse(head_iso) >= parse(since)
+
+
+def check_design(state):
+    """Roda o portão no marco aguardando aprovação, se ele mexeu em interface. Retorna problemas."""
+    waiting = [m for m in state.get("milestones", []) if m.get("status") == "awaiting_approval" and m.get("pr")]
+    if not waiting:
+        return []
+    m = max(waiting, key=lambda m: m["n"])  # o marco mais recente é o desta execução
+    slug, n = state["slug"], m["n"]
+    branch = f"factory/{slug}/m{n}"
+    if git("fetch", "-q", "origin", branch).returncode != 0:
+        return []  # marco sem branch padrão (ex.: ajuste fora do fluxo); nada a conferir
+    head_at = git("log", "-1", "--format=%cI", f"origin/{branch}").stdout.strip()
+    if not gate_applies(head_at):
+        return []  # marco anterior à Design Capability
+    if not frontend_changed(slug, branch):
+        return []
+    wt = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "design-wt"
+    git("worktree", "remove", "--force", str(wt))
+    git("worktree", "add", "-q", "--detach", str(wt), f"origin/{branch}")
+
+    def read_file(rel):
+        f = wt / rel
+        return f.read_text() if f.exists() else None
+
+    def run_qa():
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import visual_qa
+        out = Path(os.environ.get("RUNNER_TEMP", "/tmp")) / "design-qa"
+        sha = git("rev-parse", "--short", f"origin/{branch}").stdout.strip()
+        rep = visual_qa.run(wt / f"projects/{slug}/public", out, wt / f"projects/{slug}/design/flows.json", sha)
+        common.summary((out / "visual-qa.md").read_text())
+        return rep
+
+    try:
+        return design_gate(slug, n, read_file, run_qa)
+    finally:
+        git("worktree", "remove", "--force", str(wt))
 
 
 def evaluate(agent_outcome, slug, expect_issue, prev_status, run_id, inbox_path, states):
@@ -85,6 +184,24 @@ def evaluate(agent_outcome, slug, expect_issue, prev_status, run_id, inbox_path,
     return "done", state["last_event"].get("summary", ""), state
 
 
+def agent_skills(path):
+    """Skills disponíveis e efetivamente usadas pelo agente (do log do Claude Code)."""
+    loaded, used = [], []
+    try:
+        for line in Path(path).read_text().splitlines():
+            if not line.startswith("{"):
+                continue
+            ev = json.loads(line)
+            if ev.get("type") == "system" and ev.get("subtype") == "init":
+                loaded = ev.get("skills") or [c for c in ev.get("slash_commands", []) if "design" in c or "ux" in c]
+            for c in (ev.get("message") or {}).get("content") or []:
+                if isinstance(c, dict) and c.get("type") == "tool_use" and c.get("name") == "Skill":
+                    used.append((c.get("input") or {}).get("skill") or (c.get("input") or {}).get("command"))
+    except (OSError, json.JSONDecodeError):
+        pass
+    return {"skills_available": loaded, "skills_used": [u for u in used if u]} if (loaded or used) else {}
+
+
 def main():
     env = os.environ.get
     repo, run_id = env("GITHUB_REPOSITORY", ""), env("GITHUB_RUN_ID", "local")
@@ -92,6 +209,11 @@ def main():
     slug, issue = env("SLUG", ""), env("ISSUE", "")
     outcome, reason, state = evaluate(env("AGENT_OUTCOME", ""), slug, env("EXPECT_ISSUE", ""),
                                       env("PREV_STATUS", ""), run_id, env("INBOX_PATH", ""), main_states())
+    if outcome in ("done", "waiting") and state and not os.environ.get("FACTORY_DRY"):
+        probs = check_design(state)
+        if probs:
+            outcome, reason = "failed", "portão de design do marco: " + "; ".join(probs)
+    skills = agent_skills(Path(env("RUNNER_TEMP", "/tmp")) / "agent.jsonl")
     slug = slug or (state or {}).get("slug", "")
     issue = issue or (state or {}).get("issue") or ""
 
@@ -99,7 +221,8 @@ def main():
     common.summary(f"### {icon} Desfecho: **{outcome}**\n- Projeto: `{slug or '-'}`\n- {reason}")
     common.react(env("REACT_PATH", ""), "confused" if outcome == "failed" else "rocket")
     common.append_ledger({"run_id": run_id, "event": env("EVENT", ""), "key": env("KEY", ""), "slug": slug,
-                          "issue": int(issue) if str(issue).isdigit() else None, "outcome": outcome, "summary": reason})
+                          "issue": int(issue) if str(issue).isdigit() else None, "outcome": outcome, "summary": reason,
+                          **skills})
 
     if outcome == "failed":
         from guard import MAX_FAILS, fails_in_row

@@ -11,6 +11,8 @@ Idioma: **português do Brasil** em tudo que Rafael lê. Seja curto: ele lê no 
 - `projects/<slug>/app/` — código do projeto.
 - `projects/<slug>/public/` — saída estática publicável (vai para o GitHub Pages em `/<slug>/`).
 - `projects/<slug>/evidence/m<N>/` — prints e relatórios de QA de cada marco.
+- `projects/<slug>/design/` — brief de design, direção, UX e `flows.json` (fluxos para o QA visual).
+- `.claude/skills/` — Skills da Construtora (`fabrica-design`, `frontend-design`, `ui-ux-pro-max`); procedência em `factory/design/vendor.json`.
 - `factory/config.json` — limites (WIP, marcos, turnos).
 - A issue do projeto é o canal de conversa com Rafael. PRs são marcos.
 - `factory/events/*.jsonl` — ledger de eventos (escrito pelo guard e pelo verificador, **nunca** pelo agente).
@@ -56,10 +58,11 @@ O prompt da execução informa o evento, a issue/PR, o slug (se já existir) e a
 
 **Execução de um marco**
 1. Branch `factory/<slug>/m<N>`.
-2. Implemente só o escopo do marco.
-3. QA (seção 5). Corrija falhas antes de reportar.
-4. Abra PR `[<slug>] M<N>: <título>` com o corpo no formato de `factory/templates/evidence.md`, incluindo os prints (links raw do branch) e o bloco de aprovação de marco.
-5. Comente na issue: uma linha + link do PR. Status → `awaiting_milestone_approval`.
+2. **Se o marco cria ou altera interface** (HTML, CSS, componentes, layout, textos de UI): carregue a skill `fabrica-design` antes de escrever código e siga os 8 passos dela. Não é opcional nem depende de Rafael pedir: o verificador confere os artefatos e roda o QA visual de novo no branch do PR; sem isso o marco falha.
+3. Implemente só o escopo do marco.
+4. QA funcional e QA visual (seção 5). Corrija falhas antes de reportar.
+5. Abra PR `[<slug>] M<N>: <título>` com o corpo no formato de `factory/templates/evidence.md`, incluindo os prints (links raw do branch) e o bloco de aprovação de marco.
+6. Comente na issue: uma linha + link do PR. Status → `awaiting_milestone_approval`.
 
 **PR do marco mergeado** → marco `done`. Se houver próximo marco: execute-o. Se não: status `delivered`, poste o resumo final (link publicado, o que ficou no backlog) e promova a fila (seção 7).
 
@@ -107,10 +110,14 @@ Bloqueio (precisa de decisão para continuar): status `blocked`, pergunta no for
 
 ## 5. QA e evidência
 
-Rafael não revisa código. Ele aprova por evidência. Todo marco precisa de:
+Rafael não revisa código. Ele aprova por evidência. São dois QAs diferentes, com seções separadas no PR:
 
-- Testes automatizados relevantes rodando verdes (inclua a saída resumida).
-- Para UI: `pip install playwright` (sem `playwright install`: o script usa o Chrome já instalado no runner), depois abrir o app num navegador headless (`python factory/scripts/capture.py`) e salvar prints dos fluxos do marco em `evidence/m<N>/`, incluindo largura de celular.
+**QA funcional** (todo marco): testes automatizados relevantes rodando verdes (inclua a saída resumida) e fluxos executados no navegador headless verificando comportamento (o que acontece ao clicar, salvar, recarregar).
+
+**QA visual** (marco que mexe em interface; skill `fabrica-design`): `factory/scripts/visual_qa.py` com os fluxos de `design/flows.json` (celular e desktop, incluindo vazio/carregando/erro), inspeção de cada print, correção, nova rodada e `evidence/m<N>/design-review.md`. Build verde e teste funcional verde **não** tornam um frontend pronto.
+
+O Playwright já vem instalado no job; não rode `playwright install` (os scripts usam o Chrome do runner).
+
 - Lista honesta: o que foi testado, o que não foi, limitações conhecidas.
 - Link de preview: após o merge, o app publicado fica em `https://<owner>.github.io/<repo>/<slug>/`. Antes do merge, os prints são a evidência.
 
@@ -135,7 +142,7 @@ O runner tem internet: teste contra os serviços reais (sites, RSS, APIs públic
 
 ## 8. Limites de segurança (inegociáveis)
 
-- Só altere `projects/<slug>/` do projeto atual. Nunca altere `.github/`, `factory/`, `CLAUDE.md` ou outros projetos, **exceto** em issues com label `fabrica` (melhorias da própria fábrica), que sempre passam por PR.
+- Só altere `projects/<slug>/` do projeto atual. Nunca altere `.github/`, `.claude/`, `factory/`, `CLAUDE.md` ou outros projetos, **exceto** em issues com label `fabrica` (melhorias da própria fábrica), que sempre passam por PR.
 - Nunca: force push, apagar branches de outros projetos, commitar segredos, cadastrar serviços, usar serviços pagos, publicar fora do GitHub Pages.
 - Exceção: se as variáveis de ambiente `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` existirem (segredos do repo), você pode publicar Workers no plano grátis da Cloudflare com `npx wrangler deploy`, nomeados `<slug>-<função>`. Chaves de API de Rafael (ex.: `GEMINI_API_KEY`) chegam como variáveis de ambiente: grave-as como segredo do Worker (`wrangler secret put`), nunca no front-end nem no repo. Sem esses segredos, use a workflow `sync` (seção 6) ou, se for inevitável, peça uma única vez para ele configurá-los. Nunca peça deploy manual.
 - Ações irreversíveis ou com custo → bloqueio e pergunta.

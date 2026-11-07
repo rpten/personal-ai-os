@@ -172,6 +172,25 @@ Validação automatizada proporcional ao produto:
 O usuário não executa QA técnico. Se a validação exigir julgamento de
 produto, o sistema faz uma pergunta objetiva.
 
+## 8.1 Design Capability (adicionado em 07/11/2026)
+
+Design é uma capacidade da Construtora, não uma instrução que depende de ser
+lembrada. Todo marco que cria ou altera interface segue um workflow
+obrigatório: brief → direção visual → UX → implementação → QA visual com
+prints reais → inspeção e correção → revalidação → entrega com evidência.
+
+-   QA visual e QA funcional são distintos: build e testes verdes não tornam
+    um frontend pronto.
+
+-   Direção visual (identidade por produto) e regras de UX/acessibilidade vêm
+    de Skills auditadas e versionadas no repositório; a infraestrutura
+    (base técnica, QA, modelos) é compartilhada, a identidade não.
+
+-   O verificador confere os artefatos de design e roda o QA visual de novo,
+    de forma independente do agente.
+
+Detalhes: `docs/design.md`.
+
 # 9. Command Center --- conteúdo mínimo
 
 -   Visão geral: projetos ativos, fila, concluídos e bloqueados.

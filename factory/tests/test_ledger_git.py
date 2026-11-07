@@ -48,3 +48,31 @@ def test_append_publica_e_resiste_a_corrida(tmp_path, monkeypatch):
     assert keys == ["k1", "k2"]
     # a cópia de trabalho dos jobs não é tocada
     assert not (b / "factory/events").exists()
+
+
+def test_deteccao_de_mudanca_de_interface(tmp_path, monkeypatch):
+    origin = tmp_path / "o.git"
+    sh("git", "init", "-q", "--bare", "-b", "main", str(origin))
+    w = tmp_path / "w"
+    clone(origin, w)
+    (w / "factory").mkdir()
+    (w / "factory/config.json").write_text(json.dumps({"wip_limit": 1, "max_turns": 10}))
+    (w / "projects/a/public").mkdir(parents=True)
+    (w / "projects/a/public/index.html").write_text("a")
+    sh("git", "add", ".", cwd=w); sh("git", "commit", "-qm", "base", cwd=w); sh("git", "push", "-q", "origin", "HEAD:main", cwd=w)
+    for br, path in (("factory/a/m1", "projects/a/public/style.css"), ("factory/a/m2", "projects/a/worker/index.js"),
+                     ("factory/a/m3", "projects/a/sync/run.sh")):
+        sh("git", "checkout", "-q", "-B", br, "origin/main", cwd=w)
+        (w / path).parent.mkdir(parents=True, exist_ok=True)
+        (w / path).write_text("x")
+        sh("git", "add", ".", cwd=w); sh("git", "commit", "-qm", br, cwd=w); sh("git", "push", "-q", "origin", f"HEAD:{br}", cwd=w)
+    monkeypatch.setenv("FACTORY_ROOT", str(w))
+    monkeypatch.delenv("FACTORY_DRY", raising=False)
+    import common
+    importlib.reload(common)
+    import verify
+    importlib.reload(verify)
+    sh("git", "fetch", "-q", "origin", cwd=w)
+    assert verify.frontend_changed("a", "factory/a/m1") == ["projects/a/public/style.css"]
+    assert verify.frontend_changed("a", "factory/a/m2") == []   # Worker não é interface
+    assert verify.frontend_changed("a", "factory/a/m3") == []
