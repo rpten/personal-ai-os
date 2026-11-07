@@ -47,3 +47,8 @@
 - **Feedback:** botões marcados ficam preenchidos (`aria-pressed`); toast de 2,5s (`role=status`); chat mostra "Pensando…" como bolha.
 - **Responsividade:** coluna única até 720px; acima, conteúdo centralizado (max 720px) e a barra de navegação vira barra superior/lateral compacta, sem mudar a estrutura.
 - **Regras consultadas (ui-ux-pro-max):** consulta a `ux`/`typography` para navegação inferior (≤5 itens, rótulo + ícone), alvos ≥44px, não depender só de cor (marcado = preenchido + ícone ✓), `prefers-reduced-motion`, esqueletos em vez de spinner para carregamento > 1s.
+
+## M8 — Sinopse sempre visível (ajuste)
+- **Brief:** Rafael (07/11) quer a sinopse direto no cartão, sem "Ver/Ocultar", para livros e filmes.
+- **Direção:** ordem do cartão: título → Sinopse → Por que você gostaria → Do seu histórico → ações. A sinopse descreve o item e vem antes; o "por que" fica em texto claro e mais forte, o que mantém a hierarquia (sinopse em cinza suave, 16px, entrelinha 1,6, máx. 62ch).
+- **UX:** nada escondido atrás de clique; sinopse ausente simplesmente não ocupa espaço.

@@ -85,8 +85,7 @@ input::placeholder { color: #9a8d7d; }
 .why p { font-size: var(--step-0); max-width: 60ch; }
 .refs { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .chip { font-size: var(--step--1); padding: 4px 10px; border-radius: 99px; background: var(--color-surface-2); border: 1px solid var(--color-border); color: var(--color-fg); }
-.syn summary { min-height: var(--tap); display: flex; align-items: center; color: var(--color-muted); font-size: var(--step--1); font-weight: 600; cursor: pointer; }
-.syn p { color: var(--color-muted); font-size: var(--step--1); max-width: 60ch; }
+.syn p { color: var(--color-muted); font-size: var(--step-0); line-height: 1.6; max-width: 62ch; }
 .acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 .acts .btn { padding: 0 var(--space-2); }
 .donebox { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
@@ -138,7 +137,5 @@ input::placeholder { color: #9a8d7d; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px); background: var(--color-fg); color: var(--color-bg); padding: var(--space-3) var(--space-4); border-radius: 99px; font-weight: 600; font-size: var(--step--1); opacity: 0; pointer-events: none; transition: opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease); max-width: calc(100% - 32px); text-align: center; z-index: 20; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 
-.syn summary::after { content: "Ver"; margin-left: var(--space-2); color: var(--color-accent); }
-.syn[open] summary::after { content: "Ocultar"; }
 #summary > * + * { margin-top: var(--space-3); }
 .notice.err p + p { color: var(--color-fg); }
