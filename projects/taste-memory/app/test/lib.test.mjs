@@ -119,3 +119,22 @@ test("M3 backup: exporta, restaura em banco vazio, sem a chave do Gemini; rejeit
   assert.throws(() => importBackup("nao json", {}), /inválido/);
   assert.throws(() => importBackup('{"a":1}', {}), /não é um backup/);
 });
+
+import { backlog, markDone, removeFromBacklog, pickFromBacklog } from "../../public/lib.js";
+test("M6 backlog: lista por tipo, guarda sinopse, já vi com nota vira histórico, remover tira", () => {
+  let fb = setFeedback({}, "film", { title: "Quero Esse", year: 2010, synopsis: "Sin.", why: "Pq." }, "want");
+  fb = setFeedback(fb, "book", { title: "Livro Q", author: "Autor" }, "want");
+  assert.equal(backlog(fb, "film").length, 1); assert.equal(backlog(fb, "film")[0].synopsis, "Sin."); assert.equal(backlog(fb, "book").length, 1);
+  const key = backlog(fb, "film")[0].key;
+  const d = markDone({ items: [], feedback: fb }, key, 4, "2026-11-06");
+  assert.equal(backlog(d.feedback, "film").length, 0); assert.equal(d.feedback[key].status, "seen");
+  assert.deepEqual([d.items[0].title, d.items[0].rating, d.items[0].source], ["Quero Esse", 4, "manual"]);
+  const d2 = markDone({ items: [], feedback: fb }, key, null); assert.equal(d2.items[0].rating, null);
+  assert.equal(backlog(removeFromBacklog(fb, key), "film").length, 0);
+});
+test("M6 pick: chama /pick com o perfil e devolve as escolhas", async () => {
+  let sent; const fetchFn = async (u, o) => { sent = { u, b: JSON.parse(o.body) }; return new Response(JSON.stringify({ picks: [{ title: "Quero Esse", why: "x" }] }), { status: 200 }); };
+  const fb = setFeedback({}, "film", { title: "Quero Esse" }, "want");
+  const r = await pickFromBacklog({ workerUrl: "https://w", list: [], type: "film", mood: "leve", feedback: fb, fetchFn });
+  assert.ok(sent.u.endsWith("/pick")); assert.deepEqual(sent.b.profile.wants, ["Quero Esse"]); assert.equal(r[0].title, "Quero Esse");
+});

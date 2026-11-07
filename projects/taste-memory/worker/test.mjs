@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { handle, parseSuggestions, cleanProfile, cleanMessages, ALLOWED_ORIGIN } from "./index.js";
+import { handle, parseSuggestions, parsePicks, cleanProfile, cleanMessages, ALLOWED_ORIGIN } from "./index.js";
 
 const profile = cleanProfile({ loved: [{ title: "Parasita", year: 2019, rating: 5 }, { title: "Cidade de Deus", year: 2002, rating: 4.5 }], disliked: [{ title: "Ruim", rating: 1 }], seen: ["Parasita", "Cidade de Deus", "Ruim"], wants: ["Quero Este"], nos: ["Nao Curto"] });
 const req = (path, body, o = {}) => new Request("https://w.example" + path, { method: "POST", headers: { Origin: ALLOWED_ORIGIN, "Content-Type": "application/json", ...o.headers }, body: JSON.stringify(body), ...o });
@@ -59,11 +59,26 @@ test("erros: 429 vira mensagem amigável; chave recusada não vaza; JSON/tipo in
   r = await handle(req("/recs", { type: "film", profile }), {}, gem(sugs)); assert.equal(r.status, 500);
   r = await handle(req("/recs", { type: "film", profile }), env, gem("sem json")); assert.equal(r.status, 502);
   r = await handle(req("/chat", { type: "film", profile, suggestion: { title: "X" }, messages: [] }), env, gem("ok")); assert.equal(r.status, 400);
-  r = await handle(new Request("https://w.example/recs", { method: "POST", headers: { Origin: ALLOWED_ORIGIN }, body: "x".repeat(90000) }), env, gem(sugs)); assert.equal(r.status, 413);
+  r = await handle(new Request("https://w.example/recs", { method: "POST", headers: { Origin: ALLOWED_ORIGIN }, body: "x".repeat(260000) }), env, gem(sugs)); assert.equal(r.status, 413);
 });
 
 test("cleanMessages: limita a 12, começa por 'user', termina por 'user'", () => {
   const m = Array.from({ length: 20 }, (_, i) => ({ role: i % 2 ? "model" : "user", text: "m" + i }));
   const c = cleanMessages(m.slice(0, 19)); assert.ok(c.length <= 12); assert.equal(c[0].role, "user"); assert.equal(c.at(-1).role, "user");
   assert.throws(() => cleanMessages([{ role: "model", text: "x" }]));
+});
+
+test("M6 /pick: escolhe só do backlog (títulos inventados caem) e exige backlog", async () => {
+  const picks = JSON.stringify([{ title: "quero este", why: "Combina com Parasita." }, { title: "Inventado", why: "x" }]);
+  const r = await handle(req("/pick", { type: "film", mood: "leve", profile }), env, gem(picks));
+  assert.equal(r.status, 200);
+  assert.deepEqual((await r.json()).picks, [{ title: "Quero Este", why: "Combina com Parasita." }]);
+  assert.match(gem.calls.at(-1).init.body, /leve/);
+  const e = await handle(req("/pick", { type: "film", profile: cleanProfile({}) }), env, gem(picks));
+  assert.equal(e.status, 400);
+  assert.throws(() => parsePicks("[]", profile));
+});
+test("M6: limites de 100 foram removidos", () => {
+  const p = cleanProfile({ nos: Array.from({ length: 300 }, (_, i) => "T" + i), wants: Array.from({ length: 300 }, (_, i) => "W" + i) });
+  assert.equal(p.nos.length, 300); assert.equal(p.wants.length, 300);
 });

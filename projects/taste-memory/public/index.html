@@ -11,6 +11,10 @@
 <details style="margin-top:10px"><summary class="muted">Quer direcionar? (opcional)</summary>
 <label>Humor ou pedido <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></label></details>
 <p id="recmsg" class="muted" aria-live="polite" role="status"></p><div id="recs"></div><div id="wants"></div></section>
+<section class="card" id="bl"><h2>Meu backlog</h2>
+<nav id="bltabs"><button data-t="film" class="on">🎬 Filmes</button><button data-t="book">📚 Livros</button></nav>
+<div id="blpick"><input id="blmood" maxlength="200" placeholder="Humor de agora (opcional): ex.: algo leve"><button id="blbtn" class="primary">Tirar do backlog: o que combina?</button></div>
+<p id="blmsg" class="muted" aria-live="polite" role="status"></p><div id="blpicks"></div><div id="bllist"></div></section>
 <section class="card"><h2>Atualizar dados</h2>
 <p id="status" class="muted"></p><p class="muted">Os feeds de Letterboxd e Goodreads são coletados de hora em hora pela fábrica; aqui você só puxa o mais recente.</p>
 <button id="sync" class="primary">Atualizar agora</button>

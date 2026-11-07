@@ -4,7 +4,7 @@
 // profile: {loved:[{title,year,author,rating}], disliked:[...], seen:[títulos], wants:[títulos], nos:[títulos]}
 export const ALLOWED_ORIGIN = "https://rpten.github.io";
 export const MODEL = "gemini-3.1-flash-lite";
-const MAX_BODY = 80_000;
+const MAX_BODY = 250_000;
 
 const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 const str = (s, n) => String(s ?? "").slice(0, n);
@@ -14,7 +14,7 @@ const line = (i) => `- ${i.title}${i.year ? ` (${i.year})` : ""}${i.author ? ` �
 export function cleanProfile(p = {}) {
   const items = (a, n) => (Array.isArray(a) ? a : []).slice(0, n).map((i) => ({ title: str(i?.title, 200), year: yr(i?.year), author: str(i?.author, 200), rating: Number(i?.rating) || null })).filter((i) => i.title);
   const names = (a, n) => (Array.isArray(a) ? a : []).slice(0, n).map((t) => str(t, 200)).filter(Boolean);
-  return { loved: items(p.loved, 40), disliked: items(p.disliked, 20), seen: names(p.seen, 500), wants: names(p.wants, 100), nos: names(p.nos, 100) };
+  return { loved: items(p.loved, 40), disliked: items(p.disliked, 20), seen: names(p.seen, 3000), wants: names(p.wants, 1000), nos: names(p.nos, 1000) };
 }
 
 export function buildRecsPrompt(type, mood, profile) {
@@ -60,6 +60,33 @@ Já ${type === "film" ? "viu" : "leu"} (não sugira de novo): ${profile.seen.sli
 Se ela discordar, considere o argumento com honestidade (pode admitir que errou). Se pedir alternativas, dê 1-3 ${kind} reais que ela ainda não ${type === "film" ? "viu" : "leu"}, com uma frase de motivo ligada ao gosto dela. Não invente ${kind}; na dúvida, diga que não tem certeza.`;
 }
 
+export function buildPickPrompt(type, mood, profile) {
+  const kind = type === "film" ? "filmes" : "livros";
+  return `Você ajuda a escolher o que ${type === "film" ? "ver" : "ler"} agora, SOMENTE entre os ${kind} do backlog dela.
+Backlog (escolha só daqui, títulos exatos): ${profile.wants.join("; ")}
+Gostou muito:
+${profile.loved.slice(0, 25).map(line).join("\n") || "(sem dados)"}
+Não gostou:
+${profile.disliked.slice(0, 15).map(line).join("\n") || "(sem dados)"}
+${mood ? `Humor/pedido de agora: ${str(mood, 200)}\n` : "Sem humor informado: escolha o que mais combina com o gosto dela.\n"}Escolha até 3 do backlog. Para cada um, "why" = 1-2 frases do porquê combina agora, citando itens REAIS da lista "Gostou muito" quando fizer sentido.
+Responda SOMENTE com JSON: [{"title":"","why":""}]. Português do Brasil.`;
+}
+
+export function parsePicks(text, profile) {
+  const t = String(text || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const a = t.indexOf("["), b = t.lastIndexOf("]");
+  if (a < 0 || b < a) throw new Error("resposta sem lista");
+  let arr; try { arr = JSON.parse(t.slice(a, b + 1)); } catch { throw new Error("resposta em formato inválido"); }
+  const byNorm = new Map(profile.wants.map((w) => [norm(w), w]));
+  const out = []; const used = new Set();
+  for (const p of Array.isArray(arr) ? arr : []) {
+    const w = byNorm.get(norm(p?.title)); // só títulos que de fato estão no backlog
+    if (w && !used.has(w)) { used.add(w); out.push({ title: w, why: str(p.why, 600).trim() }); }
+  }
+  if (!out.length) throw new Error("nenhum título do backlog escolhido");
+  return out.slice(0, 3);
+}
+
 export function cleanMessages(m) {
   const out = (Array.isArray(m) ? m : []).slice(-12).map((x) => ({ role: x?.role === "model" ? "model" : "user", text: str(x?.text, 1000).trim() })).filter((x) => x.text);
   while (out.length && out[0].role !== "user") out.shift();
@@ -99,7 +126,7 @@ export async function handle(request, env, fetchFn = fetch) {
   if (origin !== ALLOWED_ORIGIN) return reply(403, { error: "Origem não permitida." }, { Vary: "Origin" });
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   const path = new URL(request.url).pathname;
-  if (request.method !== "POST" || !["/recs", "/chat"].includes(path)) return reply(404, { error: "Rota não encontrada." });
+  if (request.method !== "POST" || !["/recs", "/chat", "/pick"].includes(path)) return reply(404, { error: "Rota não encontrada." });
   try {
     const raw = await request.text();
     if (raw.length > MAX_BODY) throw new HttpError(413, "Pedido grande demais.");
@@ -111,6 +138,11 @@ export async function handle(request, env, fetchFn = fetch) {
       const text = await gemini(env, [{ role: "user", parts: [{ text: buildRecsPrompt(type, str(body.mood, 200).trim(), profile) }] }], true, fetchFn);
       let suggestions; try { suggestions = parseSuggestions(text, profile); } catch (e) { throw new HttpError(502, `Resposta do Gemini inutilizável: ${e.message}.`); }
       return reply(200, { suggestions });
+    }
+    if (path === "/pick") {
+      if (!profile.wants.length) throw new HttpError(400, "Seu backlog está vazio.");
+      const text = await gemini(env, [{ role: "user", parts: [{ text: buildPickPrompt(type, str(body.mood, 200).trim(), profile) }] }], true, fetchFn);
+      try { return reply(200, { picks: parsePicks(text, profile) }); } catch (e) { throw new HttpError(502, `Resposta do Gemini inutilizável: ${e.message}.`); }
     }
     const s = body.suggestion; if (!s?.title) throw new HttpError(400, "Indicação ausente.");
     let msgs; try { msgs = cleanMessages(body.messages); } catch (e) { throw new HttpError(400, e.message); }

@@ -1,4 +1,4 @@
-import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend, chat, setFeedback, sugKey, exportBackup, importBackup } from "./lib.js";
+import { parseLetterboxdRss, parseGoodreadsRss, parseCsvHistory, merge, summarize, recommend, chat, setFeedback, sugKey, exportBackup, importBackup, backlog, markDone, removeFromBacklog, pickFromBacklog } from "./lib.js";
 
 const KEY = "taste-memory:v1";
 const load = () => { let d; try { d = { items: [], feedback: {}, chats: {}, lastSync: null, ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { d = { items: [], feedback: {}, chats: {}, lastSync: null }; }
@@ -59,7 +59,33 @@ async function importCsv(file) {
 
 document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; cur = []; render(); renderSugs(); }));
 save(); // grava já sem a chave antiga
-let openChat = null, busy = false;
+let openChat = null, busy = false, blTab = "film", rating = null, picks = [];
+function renderBacklog() {
+  const list = backlog(db.feedback, blTab), v = blTab === "film" ? "Já vi" : "Já li";
+  document.querySelectorAll("#bltabs button").forEach((b) => b.classList.toggle("on", b.dataset.t === blTab));
+  $("blpicks").innerHTML = picks.length ? `<h2>Combina com você agora</h2>${picks.map((p) => `<p class="pick"><b>${esc(p.title)}</b> — ${esc(p.why)}</p>`).join("")}` : "";
+  $("bllist").innerHTML = list.length ? list.map((w) => `<div class="sug"><b>${esc(w.title)}</b>${w.year ? ` (${w.year})` : ""}${w.author ? ` — ${esc(w.author)}` : ""}
+${w.synopsis ? `<p class="syn">${esc(w.synopsis)}</p>` : ""}${w.why ? `<p><span class="tag">Por que você gostaria</span> ${esc(w.why)}</p>` : ""}
+${rating === w.key ? `<p class="muted">Que nota? <span class="stars">${[1, 2, 3, 4, 5].map((n) => `<button data-bk="${esc(w.key)}" data-act="rate" data-n="${n}">${n}★</button>`).join("")}<button data-bk="${esc(w.key)}" data-act="rate" data-n="0">Sem nota</button></span></p>`
+  : `<div class="fb"><button data-bk="${esc(w.key)}" data-act="done">${v}</button><button data-bk="${esc(w.key)}" data-act="rm">Remover</button></div>`}</div>`).join("")
+    : `<p class="muted">Nada no backlog de ${blTab === "film" ? "filmes" : "livros"}. Toque em “Quero” nas indicações para guardar aqui.</p>`;
+}
+document.querySelectorAll("#bltabs button").forEach((b) => b.addEventListener("click", () => { blTab = b.dataset.t; rating = null; picks = []; $("blmsg").textContent = ""; renderBacklog(); }));
+$("bllist").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-act]"); if (!b) return; const k = b.dataset.bk;
+  if (b.dataset.act === "done") rating = k;
+  else if (b.dataset.act === "rate") { Object.assign(db, markDone(db, k, +b.dataset.n || null)); rating = null; picks = picks.filter((p) => p.title !== db.feedback[k]?.title); render(); }
+  else if (b.dataset.act === "rm") { db.feedback = removeFromBacklog(db.feedback, k); }
+  save(); renderBacklog(); renderSugs();
+});
+$("blbtn").addEventListener("click", async () => {
+  const m = $("blmsg"), btn = $("blbtn");
+  if (!backlog(db.feedback, blTab).length) { m.className = "err"; m.textContent = "Seu backlog está vazio: marque “Quero” em alguma indicação primeiro."; return; }
+  btn.disabled = true; m.className = "muted"; m.textContent = "Escolhendo do seu backlog…";
+  try { picks = await pickFromBacklog({ workerUrl, list: db.items, type: blTab, mood: $("blmood").value, feedback: db.feedback }); m.className = "ok"; m.textContent = `${picks.length} do seu backlog:`; }
+  catch (err) { picks = []; m.className = "err"; m.textContent = err.message; }
+  btn.disabled = false; renderBacklog();
+});
 let cur = [];
 const chatBox = (k) => { const msgs = db.chats[k] || [];
   return `<div class="chat">${msgs.map((m) => `<div class="msg ${m.role}">${esc(m.text)}</div>`).join("")}${busy ? '<div class="msg model muted">Pensando…</div>' : ""}
@@ -71,8 +97,7 @@ ${s.synopsis ? `<p class="syn">${esc(s.synopsis)}</p>` : ""}<p><span class="tag"
 ${(s.refs || []).length ? `<p class="refs">${s.refs.map((r) => `<span class="chip">${esc(r.title)}${r.rating ? ` · ${r.rating}★` : ""}</span>`).join("")}</p>` : ""}
 <div class="fb">${[["seen", tab === "film" ? "Já vi" : "Já li"], ["want", "Quero"], ["no", "Não curto"]].map(([kk, t]) => `<button data-n="${n}" data-k="${kk}" class="${st === kk ? "on " + kk : ""}">${t}</button>`).join("")}<button data-n="${n}" data-chat="1" class="${openChat === k ? "on chatb" : ""}">💬 Conversar</button></div>
 ${openChat === k ? chatBox(k) : ""}</div>`; }).join("");
-  const wants = Object.values(db.feedback).filter((f) => f.status === "want" && f.type === tab);
-  $("wants").innerHTML = wants.length ? `<h2>Quero ${tab === "film" ? "ver" : "ler"} (${wants.length})</h2><ul>${wants.map((w) => `<li>${esc(w.title)}${w.year ? ` (${w.year})` : ""}${w.author ? ` — ${esc(w.author)}` : ""}</li>`).join("")}</ul>` : "";
+  renderBacklog();
 }
 $("recs").addEventListener("click", (e) => {
   const c = e.target.closest("button[data-chat]");
