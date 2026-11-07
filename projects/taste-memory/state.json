@@ -2,7 +2,7 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "delivered",
+  "status": "awaiting_milestone_approval",
   "previous_status": "delivered",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-07",
@@ -40,7 +40,7 @@
       }
     ]
   },
-  "current_milestone": 7,
+  "current_milestone": 8,
   "milestones": [
     {
       "n": 1,
@@ -90,6 +90,13 @@
       "done_criteria": "Hierarquia das indicações, navegação, mobile, chat, estados; funcionalidade preservada; QA funcional e visual",
       "status": "done",
       "pr": 12
+    },
+    {
+      "n": 8,
+      "title": "Sinopse sempre visível",
+      "done_criteria": "Sinopse direto no cartão (filmes e livros), sem Ver/Ocultar; QA visual",
+      "status": "awaiting_approval",
+      "pr": 14
     }
   ],
   "preview_url": "https://rpten.github.io/personal-ai-os/taste-memory/",
@@ -129,7 +136,8 @@
     "M5 mergeado (PR #8).",
     "M6 mergeado (PR #10). Rafael (inbox 07/11): redesign substancial como M7, piloto da Design Capability v1; branch a partir de main.",
     "M7 (PR #12): redesign com navegação inferior, capas tipográficas, Instrument Sans + Fraunces; lógica/Worker intocados; QA visual 0 bloqueantes.",
-    "M7 mergeado (PR #12). Redesign entregue; projeto delivered."
+    "M7 mergeado (PR #12). Redesign entregue; projeto delivered.",
+    "Rafael (inbox 07/11): sinopse sempre visível. M8 (PR #14): sinopse logo após o título, antes do 'por que você gostaria'; lógica intocada."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -137,11 +145,11 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Testar o redesign publicado: https://rpten.github.io/personal-ai-os/taste-memory/"
+    "text": "Ver os prints e aprovar (ou mergear) o PR #14: https://github.com/rpten/personal-ai-os/pull/14"
   },
   "last_event": {
-    "run_id": "42389195852",
-    "at": "2026-11-07T16:02:34Z",
-    "summary": "Conferi a thread e os PRs: #12 (M7) e #13 já mergeados, nada pendente de Rafael."
+    "run_id": "42389359877",
+    "at": "2026-11-07T16:06:16Z",
+    "summary": "M8 pronto: sinopse sempre visível nos cartões, PR #14 aberto com prints antes/depois."
   }
 }
