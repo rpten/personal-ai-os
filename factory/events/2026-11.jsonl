@@ -14,3 +14,4 @@
 {"at": "2026-11-06T22:47:44Z", "run_id": "42306974193", "event": "pull_request/closed", "key": "pr-8-closed", "slug": "taste-memory", "issue": 3, "outcome": "waiting", "summary": "PR #8 (M5) mergeado; M6 segue aguardando aprovação no PR #10."}
 {"at": "2026-11-07T01:57:20Z", "run_id": "42326667510", "event": "schedule/", "key": "", "slug": "taste-memory", "issue": 3, "outcome": "waiting", "summary": "Retomada: sem ação nova de Rafael; M6 segue aguardando merge do PR #10."}
 {"at": "2026-11-07T03:33:25Z", "run_id": "42334486705", "event": "push/", "key": "", "slug": "", "issue": null, "outcome": "done", "summary": "execução sem projeto associado (fábrica/instrução geral)"}
+{"at": "2026-11-07T15:42:23Z", "run_id": "42387650707", "event": "pull_request/closed", "key": "pr-11-closed", "slug": "", "issue": 11, "outcome": "ignored", "summary": "PR fora da fábrica"}
