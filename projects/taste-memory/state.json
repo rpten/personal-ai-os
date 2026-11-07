@@ -2,7 +2,7 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "awaiting_milestone_approval",
+  "status": "delivered",
   "previous_status": "delivered",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-07",
@@ -88,7 +88,7 @@
       "n": 7,
       "title": "Redesign (Design Capability v1)",
       "done_criteria": "Hierarquia das indicações, navegação, mobile, chat, estados; funcionalidade preservada; QA funcional e visual",
-      "status": "awaiting_approval",
+      "status": "done",
       "pr": 12
     }
   ],
@@ -128,7 +128,8 @@
     "q7: Rafael escolheu A. PR #8 (M5) já mergeado. M6 (PR #10): backlog com abas, já vi/li com nota, remover, 'tirar do backlog' via /pick; limite de 100 removido. Worker implantado e /pick testado com Gemini real (curl).",
     "M5 mergeado (PR #8).",
     "M6 mergeado (PR #10). Rafael (inbox 07/11): redesign substancial como M7, piloto da Design Capability v1; branch a partir de main.",
-    "M7 (PR #12): redesign com navegação inferior, capas tipográficas, Instrument Sans + Fraunces; lógica/Worker intocados; QA visual 0 bloqueantes."
+    "M7 (PR #12): redesign com navegação inferior, capas tipográficas, Instrument Sans + Fraunces; lógica/Worker intocados; QA visual 0 bloqueantes.",
+    "M7 mergeado (PR #12). Redesign entregue; projeto delivered."
   ],
   "backlog": [
     "YouTube e outras fontes",
@@ -136,11 +137,11 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Olhar os prints e mergear o redesign: https://github.com/rpten/personal-ai-os/pull/12"
+    "text": "Testar o redesign publicado: https://rpten.github.io/personal-ai-os/taste-memory/ (PR #13 da fábrica segue aberto: https://github.com/rpten/personal-ai-os/pull/13)"
   },
   "last_event": {
-    "run_id": "42388916241",
-    "at": "2026-11-07T15:58:54Z",
-    "summary": "Abri o PR #13 da fábrica (Design Capability v1.1) a pedido de Rafael; o redesign #12 segue aguardando aprovação."
+    "run_id": "42389151665",
+    "at": "2026-11-07T16:01:51Z",
+    "summary": "M7 (redesign) mergeado; projeto marcado como entregue."
   }
 }
