@@ -1,0 +1,416 @@
+{
+ "routes": [
+  {
+   "match": "**/config.json*",
+   "status": 200,
+   "json": {
+    "workerUrl": "https://taste-memory-recs.simulado.workers.dev"
+   }
+  },
+  {
+   "match": "**/data/*.xml*",
+   "status": 404,
+   "body": ""
+  }
+ ],
+ "flows": [
+  {
+   "name": "01-primeiro-acesso",
+   "path": "/",
+   "steps": []
+  },
+  {
+   "name": "02-importacao",
+   "path": "/",
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    }
+   ]
+  },
+  {
+   "name": "03-com-dados",
+   "path": "/",
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=indicar]"
+    }
+   ]
+  },
+  {
+   "name": "04-carregando",
+   "path": "/",
+   "routes": [
+    {
+     "match": "https://taste-memory-recs.simulado.workers.dev/recs",
+     "hold": true
+    }
+   ],
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=indicar]"
+    },
+    {
+     "click": "#rec"
+    },
+    {
+     "wait_ms": 600
+    }
+   ]
+  },
+  {
+   "name": "05-indicacoes-prontas",
+   "path": "/",
+   "routes": [
+    {
+     "match": "https://taste-memory-recs.simulado.workers.dev/recs",
+     "status": 200,
+     "json": {
+      "suggestions": [
+       {
+        "title": "Oldboy",
+        "year": 2003,
+        "synopsis": "Um homem é libertado após 15 anos de cativeiro e tem cinco dias para descobrir quem o prendeu.",
+        "why": "Você deu 4,5★ a Parasita e gosta de thrillers com reviravolta moral. Este leva a vingança ainda mais longe.",
+        "refs": [
+         {
+          "title": "Parasita",
+          "rating": 4.5
+         },
+         {
+          "title": "Amélie, a Fabulosa",
+          "rating": 4
+         }
+        ]
+       },
+       {
+        "title": "Entre Facas e Segredos",
+        "year": 2019,
+        "synopsis": "Um detetive investiga a morte de um escritor milionário.",
+        "why": "Mistério com crítica social, como Parasita, e com humor.",
+        "refs": [
+         {
+          "title": "Parasita",
+          "rating": 4.5
+         }
+        ]
+       },
+       {
+        "title": "O Segredo dos Seus Olhos",
+        "year": 2009,
+        "synopsis": "Um ex-funcionário da justiça revisita um crime nunca esquecido.",
+        "why": "Drama longo e cheio de camadas, no estilo dos filmes que você nota alto.",
+        "refs": []
+       }
+      ]
+     }
+    }
+   ],
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=indicar]"
+    },
+    {
+     "click": "#rec"
+    },
+    {
+     "wait_for": ".rec"
+    }
+   ]
+  },
+  {
+   "name": "06-chat-aberto",
+   "path": "/",
+   "routes": [
+    {
+     "match": "https://taste-memory-recs.simulado.workers.dev/recs",
+     "status": 200,
+     "json": {
+      "suggestions": [
+       {
+        "title": "Oldboy",
+        "year": 2003,
+        "synopsis": "Um homem é libertado após 15 anos de cativeiro e tem cinco dias para descobrir quem o prendeu.",
+        "why": "Você deu 4,5★ a Parasita e gosta de thrillers com reviravolta moral. Este leva a vingança ainda mais longe.",
+        "refs": [
+         {
+          "title": "Parasita",
+          "rating": 4.5
+         },
+         {
+          "title": "Amélie, a Fabulosa",
+          "rating": 4
+         }
+        ]
+       },
+       {
+        "title": "Entre Facas e Segredos",
+        "year": 2019,
+        "synopsis": "Um detetive investiga a morte de um escritor milionário.",
+        "why": "Mistério com crítica social, como Parasita, e com humor.",
+        "refs": [
+         {
+          "title": "Parasita",
+          "rating": 4.5
+         }
+        ]
+       },
+       {
+        "title": "O Segredo dos Seus Olhos",
+        "year": 2009,
+        "synopsis": "Um ex-funcionário da justiça revisita um crime nunca esquecido.",
+        "why": "Drama longo e cheio de camadas, no estilo dos filmes que você nota alto.",
+        "refs": []
+       }
+      ]
+     }
+    },
+    {
+     "match": "https://taste-memory-recs.simulado.workers.dev/chat",
+     "status": 200,
+     "json": {
+      "reply": "Claro! Se você quer algo mais leve, Entre Facas e Segredos tem o mesmo tipo de mistério com bem mais humor."
+     }
+    }
+   ],
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=indicar]"
+    },
+    {
+     "click": "#rec"
+    },
+    {
+     "wait_for": ".rec"
+    },
+    {
+     "click": ".rec >> nth=0 >> .chatb"
+    },
+    {
+     "fill": [
+      ".cf input",
+      "tem algo mais leve?"
+     ]
+    },
+    {
+     "press": [
+      ".cf input",
+      "Enter"
+     ]
+    },
+    {
+     "wait_for": ".msg.model"
+    }
+   ]
+  },
+  {
+   "name": "07-erro-do-worker",
+   "path": "/",
+   "routes": [
+    {
+     "match": "https://taste-memory-recs.simulado.workers.dev/recs",
+     "status": 500,
+     "json": {
+      "error": "O Gemini está sobrecarregado agora. Tente de novo em instantes."
+     }
+    }
+   ],
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=indicar]"
+    },
+    {
+     "click": "#rec"
+    },
+    {
+     "wait_for": "[role=alert]"
+    }
+   ]
+  },
+  {
+   "name": "08-backlog",
+   "path": "/",
+   "routes": [
+    {
+     "match": "https://taste-memory-recs.simulado.workers.dev/recs",
+     "status": 200,
+     "json": {
+      "suggestions": [
+       {
+        "title": "Oldboy",
+        "year": 2003,
+        "synopsis": "Um homem é libertado após 15 anos de cativeiro e tem cinco dias para descobrir quem o prendeu.",
+        "why": "Você deu 4,5★ a Parasita e gosta de thrillers com reviravolta moral. Este leva a vingança ainda mais longe.",
+        "refs": [
+         {
+          "title": "Parasita",
+          "rating": 4.5
+         },
+         {
+          "title": "Amélie, a Fabulosa",
+          "rating": 4
+         }
+        ]
+       },
+       {
+        "title": "Entre Facas e Segredos",
+        "year": 2019,
+        "synopsis": "Um detetive investiga a morte de um escritor milionário.",
+        "why": "Mistério com crítica social, como Parasita, e com humor.",
+        "refs": [
+         {
+          "title": "Parasita",
+          "rating": 4.5
+         }
+        ]
+       },
+       {
+        "title": "O Segredo dos Seus Olhos",
+        "year": 2009,
+        "synopsis": "Um ex-funcionário da justiça revisita um crime nunca esquecido.",
+        "why": "Drama longo e cheio de camadas, no estilo dos filmes que você nota alto.",
+        "refs": []
+       }
+      ]
+     }
+    }
+   ],
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=indicar]"
+    },
+    {
+     "click": "#rec"
+    },
+    {
+     "wait_for": ".rec"
+    },
+    {
+     "click": ".rec >> nth=0 >> [data-k=want]"
+    },
+    {
+     "click": ".rec >> nth=1 >> [data-k=want]"
+    },
+    {
+     "click": "[data-v=backlog]"
+    }
+   ]
+  },
+  {
+   "name": "09-backlog-vazio",
+   "path": "/#backlog",
+   "steps": []
+  },
+  {
+   "name": "10-gosto",
+   "path": "/",
+   "steps": [
+    {
+     "click": "[data-v=dados]"
+    },
+    {
+     "set_files": [
+      "#csv",
+      "../app/fixtures/ratings.csv"
+     ]
+    },
+    {
+     "wait_for": "#csvmsg.ok"
+    },
+    {
+     "click": "[data-v=gosto]"
+    }
+   ]
+  },
+  {
+   "name": "11-livros-vazio",
+   "path": "/",
+   "steps": [
+    {
+     "click": "#kind [data-t=book]"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+/* tokens.css · Memória de gosto — identidade "curadoria íntima" (ver design/brief.md) */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Instrument+Sans:wght@400;500;600&display=swap");
+:root {
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --color-bg: #15110e;
+  --color-surface: #201a16;
+  --color-surface-2: #2a231d;
+  --color-fg: #f4ece0;
+  --color-muted: #b8ab9b;
+  --color-border: #3a3028;
+  --color-accent: #f0a640;
+  --color-on-accent: #1a1206;
+  --color-danger: #ff8f84;
+  --color-success: #9cc7a8;
+  --color-film: #f0a640;
+  --color-book: #9cc7a8;
+  --radius-1: 6px; --radius-2: 12px; --radius-3: 20px;
+}
+body[data-kind="book"] { --color-accent: var(--color-book); --color-on-accent: #0f1a12; }

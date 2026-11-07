@@ -1,29 +1,66 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Memória de gosto</title><link rel="stylesheet" href="style.css"></head>
-<body><main>
-<h1>Memória de gosto</h1>
-<nav id="tabs"><button data-t="film" class="on">Filmes</button><button data-t="book">Livros</button></nav>
-<section id="summary" aria-live="polite"></section>
-<section class="card"><h2 id="rech">Indicações para você</h2>
-<p class="muted">O curador usa o que sabe do seu gosto (notas, favoritos, o que você marcou). Não precisa pedir nada.</p>
-<button id="rec" class="primary">Me indique 5</button>
-<details style="margin-top:10px"><summary class="muted">Quer direcionar? (opcional)</summary>
-<label>Humor ou pedido <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></label></details>
-<p id="recmsg" class="muted" aria-live="polite" role="status"></p><div id="recs"></div><div id="wants"></div></section>
-<section class="card" id="bl"><h2>Meu backlog</h2>
-<nav id="bltabs"><button data-t="film" class="on">🎬 Filmes</button><button data-t="book">📚 Livros</button></nav>
-<div id="blpick"><input id="blmood" maxlength="200" placeholder="Humor de agora (opcional): ex.: algo leve"><button id="blbtn" class="primary">Tirar do backlog: o que combina?</button></div>
-<p id="blmsg" class="muted" aria-live="polite" role="status"></p><div id="blpicks"></div><div id="bllist"></div></section>
-<section class="card"><h2>Atualizar dados</h2>
-<p id="status" class="muted"></p><p class="muted">Os feeds de Letterboxd e Goodreads são coletados de hora em hora pela fábrica; aqui você só puxa o mais recente.</p>
-<button id="sync" class="primary">Atualizar agora</button>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#15110e">
+<title>Memória de gosto</title>
+<link rel="stylesheet" href="foundation.css"><link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="style.css"></head>
+<body data-kind="film">
+<header class="top">
+  <p class="brand">Memória de gosto</p>
+  <div id="kind" class="seg" role="group" aria-label="Tipo de obra">
+    <button type="button" data-t="film" aria-pressed="true">Filmes</button>
+    <button type="button" data-t="book" aria-pressed="false">Livros</button>
+  </div>
+</header>
+<nav class="bar" id="nav" aria-label="Seções"></nav>
+<main>
+<section id="v-indicar" data-view="indicar" aria-labelledby="h-indicar">
+  <h1 id="h-indicar" class="display">O que vamos <em id="kindword">assistir</em> agora?</h1>
+  <div id="hero">
+    <p class="lead">Eu conheço suas notas, favoritos e o que você já marcou. Não precisa pedir nada.</p>
+    <button id="rec" type="button" class="btn primary big"><span class="ic" aria-hidden="true"></span><span id="reclabel">Me indique 5</span></button>
+    <details class="mood"><summary>Quer direcionar? <span class="opt">opcional</span></summary>
+      <label for="mood">Humor ou pedido</label>
+      <input id="mood" maxlength="200" placeholder="ex.: algo leve, curto, de suspense"></details>
+  </div>
+  <div id="hero-empty" class="empty" hidden>
+    <h2 class="display sm">Primeiro, me conte o que você já viu</h2>
+    <p id="empty-txt"></p>
+    <button type="button" class="btn primary" data-go="dados">Ir para Dados</button>
+  </div>
+  <div id="recmsg" aria-live="polite"></div>
+  <div id="recs" class="stack"></div>
 </section>
-<section class="card"><h2>Importar CSV (uma vez)</h2>
-<p class="muted">Letterboxd: <i>ratings.csv</i> do export. Goodreads: export da biblioteca. O tipo é detectado sozinho.</p>
-<input type="file" id="csv" accept=".csv,text/csv"><p id="csvmsg" class="muted"></p></section>
-<section class="card"><h2>Backup</h2>
-<p class="muted">Seus dados ficam só neste navegador. Baixe um backup para guardar ou levar a outro aparelho.</p>
-<button id="export" class="primary">Exportar backup</button>
-<label>Restaurar backup <input type="file" id="import" accept=".json,application/json"></label><p id="bkmsg" class="muted"></p></section>
-</main><script type="module" src="app.js"></script></body></html>
+<section id="v-backlog" data-view="backlog" aria-labelledby="h-backlog" hidden>
+  <h1 id="h-backlog" class="display">Seu backlog</h1>
+  <div id="blpick" class="pickbox">
+    <label for="blmood">Humor de agora <span class="opt">opcional</span></label>
+    <input id="blmood" maxlength="200" placeholder="ex.: algo leve">
+    <button id="blbtn" type="button" class="btn primary">O que combina agora?</button>
+  </div>
+  <div id="blmsg" aria-live="polite"></div>
+  <div id="blpicks"></div>
+  <div id="bllist" class="stack"></div>
+</section>
+<section id="v-gosto" data-view="gosto" aria-labelledby="h-gosto" hidden>
+  <h1 id="h-gosto" class="display">Seu gosto</h1>
+  <div id="summary"></div>
+</section>
+<section id="v-dados" data-view="dados" aria-labelledby="h-dados" hidden>
+  <h1 id="h-dados" class="display">Dados</h1>
+  <div class="panel"><h2>Sincronizar</h2>
+    <p class="lead">Letterboxd e Goodreads são coletados de hora em hora. Aqui você puxa o mais recente.</p>
+    <p id="status" class="note" role="status"></p>
+    <button id="sync" type="button" class="btn primary">Atualizar agora</button></div>
+  <div class="panel"><h2>Importar CSV</h2>
+    <p class="lead">Uma vez só, para o histórico antigo. Letterboxd: <i>ratings.csv</i>. Goodreads: export da biblioteca. O tipo é detectado sozinho.</p>
+    <label class="btn file">Escolher arquivo CSV<input type="file" id="csv" accept=".csv,text/csv"></label>
+    <p id="csvmsg" class="note" role="status"></p></div>
+  <div class="panel"><h2>Backup</h2>
+    <p class="lead">Seus dados ficam só neste navegador. Baixe um backup para guardar ou levar a outro aparelho.</p>
+    <div class="row"><button id="export" type="button" class="btn primary">Exportar backup</button>
+    <label class="btn file">Restaurar backup<input type="file" id="import" accept=".json,application/json"></label></div>
+    <p id="bkmsg" class="note" role="status"></p></div>
+</section>
+</main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script></body></html>
