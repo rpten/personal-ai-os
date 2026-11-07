@@ -2,7 +2,7 @@
   "slug": "taste-memory",
   "title": "Memória de gosto + recomendações",
   "issue": 3,
-  "status": "awaiting_milestone_approval",
+  "status": "executing",
   "previous_status": "delivered",
   "created_at": "2026-11-05",
   "updated_at": "2026-11-07",
@@ -40,7 +40,7 @@
       }
     ]
   },
-  "current_milestone": 6,
+  "current_milestone": 7,
   "milestones": [
     {
       "n": 1,
@@ -81,8 +81,14 @@
       "n": 6,
       "title": "Backlog de filmes e livros",
       "done_criteria": "Abas 🎬/📚 alimentadas por 'Quero', já vi/li com nota, remover, tirar do backlog por humor; limite de 100 removido",
-      "status": "awaiting_approval",
+      "status": "done",
       "pr": 10
+    },
+    {
+      "n": 7,
+      "title": "Redesign (Design Capability v1)",
+      "done_criteria": "Hierarquia das indicações, navegação, mobile, chat, estados; funcionalidade preservada; QA funcional e visual",
+      "status": "in_progress"
     }
   ],
   "preview_url": "https://rpten.github.io/personal-ai-os/taste-memory/",
@@ -119,19 +125,20 @@
     "Rafael (06/11) pediu backlog de filmes e livros alimentado por 'Quero'; confirmado: indicações excluem visto/quero/não curto (limite 100). Pergunta q7 (A: M6 com abas de backlog ⭐ / B: só tirar limite).",
     "q6: Rafael escolheu A. Aberta issue `fabrica` #9: perfil em factory/profile/rafael.md publicado como JSON para os apps lerem. PR #8 (M5) segue aguardando merge.",
     "q7: Rafael escolheu A. PR #8 (M5) já mergeado. M6 (PR #10): backlog com abas, já vi/li com nota, remover, 'tirar do backlog' via /pick; limite de 100 removido. Worker implantado e /pick testado com Gemini real (curl).",
-    "M5 mergeado (PR #8)."
+    "M5 mergeado (PR #8).",
+    "M6 mergeado (PR #10). Rafael (inbox 07/11): redesign substancial como M7, piloto da Design Capability v1; branch a partir de main."
   ],
   "backlog": [
     "YouTube e outras fontes",
     "Projetos de aprendizado de idiomas baseados em interesses"
   ],
   "next_action": {
-    "owner": "rafael",
-    "text": "Mergear o PR da Design Capability v1 para ativar a capacidade e iniciar o redesign: https://github.com/rpten/personal-ai-os/pull/11 (o PR do M6 segue aguardando: https://github.com/rpten/personal-ai-os/pull/10)"
+    "owner": "agente",
+    "text": "Concluir o redesign M7 e abrir o PR com prints antes/depois."
   },
   "last_event": {
-    "run_id": "42334486705",
-    "at": "2026-11-07T03:33:20Z",
-    "summary": "Abri o PR #11 da melhoria da fábrica (Design Capability v1), sem alterar o branch."
+    "run_id": "42387609864",
+    "at": "2026-11-07T15:45:58Z",
+    "summary": "M6 mergeado; iniciei o M7 (redesign) pedido na caixa de entrada."
   }
 }
