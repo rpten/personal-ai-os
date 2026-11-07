@@ -5,7 +5,7 @@ name: test
 # (ou voltar ao branch release/factory-v* anterior).
 on:
   push:
-    branches: [main]
+    branches: [main, "fabrica/**"]
     paths: ["factory/**", ".github/**", "CLAUDE.md", "projects/*/state.json"]
   pull_request:
     paths: ["factory/**", ".github/**", "CLAUDE.md", "projects/*/state.json"]

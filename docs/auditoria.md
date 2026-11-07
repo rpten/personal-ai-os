@@ -1,6 +1,6 @@
 # Auditoria — repositório vs. Blueprint v1
 
-*06/11/2026 · base: `docs/blueprint.md` · estado após a entrega do P0.*
+*06/11/2026 (P0) · atualizado em 07/11/2026 (Design Capability v1) · base: `docs/blueprint.md`.*
 
 Legenda: ✅ implementado · 🟡 parcial · ⬜ ausente · ⚠️ contraditório (encontrado e corrigido nesta rodada, salvo indicação).
 
@@ -73,7 +73,18 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ ausente · ⚠️ contraditóri
 | Sob demanda; agentes param | ✅ | cada execução termina e o job encerra |
 
 ### §8 QA e evidências — 🟡
-Testes, prints, console e limitações estão em todos os PRs de marco. A fábrica ainda não confere automaticamente se o PR tem evidência.
+Testes, prints, console e limitações estão em todos os PRs de marco. **Interface:** o verificador agora exige brief/direção/UX, `flows.json` e `design-review.md`, e roda o QA visual de novo no branch do PR (0 bloqueantes). **Lógica não visual:** a fábrica ainda não confere se o PR traz testes.
+
+### §8.1 Design Capability — ✅ (v1)
+| Requisito | | Evidência |
+|---|---|---|
+| Skills auditadas e versionadas | ✅ | `.claude/skills/{frontend-design,ui-ux-pro-max}`, `factory/design/vendor.json`, teste de integridade |
+| Acionada automaticamente | ✅ | descrição da skill `fabrica-design` + `CLAUDE.md` §3 + portão no `verify.py`; uso registrado no ledger |
+| Workflow de 8 passos | ✅ | `.claude/skills/fabrica-design/SKILL.md`, modelos em `factory/templates/` |
+| QA visual automatizado | ✅ | `factory/scripts/visual_qa.py` (3 testes com páginas boas/ruins), portão em `verify.py` (6 testes) |
+| Julgamento estético | 🟡 | inspeção dos prints pelo agente, registrada e exigida; não é medida automaticamente |
+| Design system por produto | ✅ | `foundation.css` compartilhada + `tokens.css` por app |
+| Piloto (Taste Memory) | ver relatório do PR do redesign | |
 
 ### §9 Command Center — 🟡
 Agora tem: totais, **Preciso de você**, cartão por projeto (fase, marcos, último evento, próxima ação), entregas (link do app) e histórico em linguagem humana com falhas. Falta: objetivo no cartão, ações rápidas além de "Nova ideia", releases.
@@ -84,6 +95,7 @@ Agora tem: totais, **Preciso de você**, cartão por projeto (fase, marcos, últ
 | P0 Confiabilidade e fonte de verdade | ✅ esta entrega |
 | P1 Ciclo de projeto | ✅ validado com taste-memory |
 | P2 Command Center | 🟡 |
+| Design Capability v1 | ✅ capacidade; piloto no Taste Memory em andamento |
 | P3 Jarvis integrado | ⬜ |
 | P4 Context & Memory | ⬜ |
 | P5 Aplicações | 🟡 taste-memory v1 entregue, M4 em andamento |

@@ -81,3 +81,89 @@ def test_estados_reais_do_repo_sao_validos(env):
         s = json.loads(p.read_text())
         errs = [e for e in common.validate_state(s) if not (s["status"] == "closed" and e == "next_action vazio")]
         assert errs == [], f"{p}: {errs}"
+
+
+# --- portão de design (Design Capability v1) -------------------------------
+
+BRIEF = "## Brief\nx\n## Direção\ny\n## UX\nz\n"
+REVIEW = "## Problemas\na\n## Correções\nb\n## Revalidação\nc\n"
+QA_OK = {"blocking": 0, "results": []}
+QA_BAD = {"blocking": 2, "results": [{"issues": [{"severity": "blocking", "rule": "contraste"},
+                                                  {"severity": "blocking", "rule": "rolagem-horizontal"}]}]}
+
+
+def gate(env, files, qa=QA_OK):
+    calls = []
+
+    def run_qa():
+        calls.append(1)
+        return qa
+    probs = env.v.design_gate("a", 5, lambda p: files.get(p.replace("projects/a/", "")), run_qa)
+    return probs, calls
+
+
+def test_portao_completo_passa(env):
+    probs, calls = gate(env, {"design/brief.md": BRIEF, "design/flows.json": "{}", "evidence/m5/design-review.md": REVIEW})
+    assert probs == [] and calls == [1]
+
+
+def test_portao_sem_artefatos_nao_roda_qa(env):
+    probs, calls = gate(env, {})
+    assert len(probs) == 3 and calls == []
+
+
+def test_portao_secoes_faltando(env):
+    probs, _ = gate(env, {"design/brief.md": "## Brief", "design/flows.json": "{}", "evidence/m5/design-review.md": "## Problemas"})
+    assert any("Direção" in p for p in probs) and any("Revalidação" in p for p in probs)
+
+
+def test_portao_qa_com_bloqueantes_falha(env):
+    probs, _ = gate(env, {"design/brief.md": BRIEF, "design/flows.json": "{}", "evidence/m5/design-review.md": REVIEW}, QA_BAD)
+    assert probs and "contraste" in probs[0] and "rolagem-horizontal" in probs[0]
+
+
+def test_flows_invalido(env):
+    probs, _ = gate(env, {"design/brief.md": BRIEF, "design/flows.json": "{x", "evidence/m5/design-review.md": REVIEW})
+    assert any("inválido" in p for p in probs)
+
+
+def test_skills_lidas_do_log(env, tmp_path):
+    log = tmp_path / "agent.jsonl"
+    log.write_text("\n".join([
+        "lixo de npm",
+        json.dumps({"type": "system", "subtype": "init", "skills": ["fabrica-design", "frontend-design", "ui-ux-pro-max"]}),
+        json.dumps({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Skill", "input": {"skill": "fabrica-design"}}]}}),
+    ]))
+    got = env.v.agent_skills(log)
+    assert got["skills_used"] == ["fabrica-design"] and "ui-ux-pro-max" in got["skills_available"]
+    assert env.v.agent_skills(tmp_path / "nao-existe") == {}
+
+
+def test_skills_vendorizadas_intactas(env):
+    """Regressão: as Skills externas são exatamente as auditadas (procedência em factory/design/vendor.json)."""
+    import hashlib
+    vendor = json.loads((REPO_ROOT / "factory/design/vendor.json").read_text())
+    for name, meta in vendor.items():
+        d = REPO_ROOT / ".claude/skills" / name
+        for rel, sha in meta["files"].items():
+            assert hashlib.sha256((d / rel).read_bytes()).hexdigest() == sha, f"{name}/{rel} mudou"
+
+
+def test_fabrica_design_referencia_o_que_existe(env):
+    skill = (REPO_ROOT / ".claude/skills/fabrica-design/SKILL.md").read_text()
+    for path in ("factory/scripts/visual_qa.py", "factory/templates/design-brief.md", "factory/templates/design-review.md",
+                 "factory/design/foundation.css", "factory/design/tokens.template.css"):
+        assert path in skill and (REPO_ROOT / path).exists(), path
+
+
+def test_portao_nao_retroage(env):
+    import json as _j
+    cfg = _j.loads((env.root / "factory/config.json").read_text())
+    cfg["design_gate_since"] = "2026-11-07T03:30:00Z"
+    (env.root / "factory/config.json").write_text(_j.dumps(cfg))
+    import importlib
+    importlib.reload(env.c)
+    importlib.reload(env.v)
+    assert env.v.gate_applies("2026-11-06T22:46:44+00:00") is False
+    assert env.v.gate_applies("2026-11-07T05:00:00+00:00") is True
+    assert env.v.gate_applies("") is True

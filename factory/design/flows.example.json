@@ -1,0 +1,11 @@
+{
+  "routes": [{"match": "**/config.json*", "status": 200, "json": {"apiUrl": "https://api.simulada.dev"}}],
+  "flows": [
+    {"name": "vazio", "path": "/", "routes": [{"match": "**/data/**", "status": 404, "body": ""}]},
+    {"name": "com-dados", "path": "/", "steps": [{"wait_for": ".lista"}]},
+    {"name": "carregando", "path": "/", "routes": [{"match": "https://api.simulada.dev/**", "hold": true}],
+     "steps": [{"click": "#acao"}, {"wait_ms": 300}]},
+    {"name": "erro", "path": "/", "routes": [{"match": "https://api.simulada.dev/**", "status": 500, "json": {"error": "falhou"}}],
+     "steps": [{"click": "#acao"}, {"wait_for": "[role=alert]"}]}
+  ]
+}

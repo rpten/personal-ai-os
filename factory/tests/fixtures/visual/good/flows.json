@@ -1,0 +1,2 @@
+{"flows": [{"name": "inicio", "path": "/"}, {"name": "resultado", "path": "/", "steps": [{"click": "#go"}, {"wait_for": "#r"}]},
+ {"name": "quebrado", "path": "/", "steps": [{"click": "#nao-existe"}]}]}

@@ -1,0 +1,24 @@
+/* tokens.css · <produto>
+   Identidade do produto, definida no passo "Direção" do design/brief.md.
+   Toda cor/fonte usada nos componentes vem daqui (nada de hex solto no CSS). */
+/* Fontes: prefira Google Fonts com display=swap, ou fontes do sistema escolhidas de propósito. */
+:root {
+  --font-body: <família do corpo>, <fallback>;
+  --font-display: <família de títulos>, <fallback>;
+
+  --color-bg: <fundo>;
+  --color-surface: <superfície/cartão>;
+  --color-fg: <texto>;
+  --color-muted: <texto secundário, contraste ≥ 4.5:1 sobre bg e surface>;
+  --color-border: <linhas>;
+  --color-accent: <ação principal>;
+  --color-on-accent: <texto sobre a ação>;
+  --color-danger: <erro>;
+  --color-success: <sucesso>;
+
+  --radius-1: <pequeno>; --radius-2: <médio>; --radius-3: <grande>;
+}
+/* Tema escuro, se o produto tiver: redefina as cores aqui. */
+@media (prefers-color-scheme: dark) {
+  :root { /* --color-bg: ...; */ }
+}
