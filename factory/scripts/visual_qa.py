@@ -117,8 +117,21 @@ CHECK_JS = r"""
     if (isMobile && (r.height < 43.5 || r.width < 43.5) && !(el.tagName === 'A' && getComputedStyle(el).display === 'inline'))
       add('warning', 'alvo-pequeno', el, `${Math.round(r.width)}×${Math.round(r.height)}px (< 44px)`);
   }
+  const pinned = el => { for (let p = el; p; p = p.parentElement) { const ps = getComputedStyle(p).position;
+    if (ps === 'fixed' || ps === 'sticky') return true; } return false; };
+  // conteúdo coberto por barra fixa: precisa haver folga no fim da página para rolar além dela
+  const fixedBottom = [...document.querySelectorAll('body *')].filter(e => vis(e) && getComputedStyle(e).position === 'fixed')
+    .map(e => e.getBoundingClientRect()).filter(r => r.bottom >= window.innerHeight - 2 && r.width > W * 0.6);
+  if (fixedBottom.length) {
+    const barH = Math.max(...fixedBottom.map(r => r.height));
+    const last = [...document.querySelectorAll('main *, body > *')].filter(e => vis(e) && !pinned(e))
+      .reduce((m, e) => Math.max(m, e.getBoundingClientRect().bottom + window.scrollY), 0);
+    if (document.scrollingElement.scrollHeight - last < barH - 2)
+      add('blocking', 'coberto-por-barra-fixa', null, `o fim do conteúdo fica sob a barra fixa (${Math.round(barH)}px): falta folga inferior`);
+  }
   for (let i = 0; i < inter.length; i++) for (let j = i + 1; j < inter.length; j++) {
     const a = inter[i], b = inter[j]; if (a.contains(b) || b.contains(a)) continue;
+    if (pinned(a) || pinned(b)) continue;
     const p = a.getBoundingClientRect(), q = b.getBoundingClientRect();
     const ix = Math.max(0, Math.min(p.right, q.right) - Math.max(p.left, q.left));
     const iy = Math.max(0, Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top));
@@ -195,6 +208,18 @@ def run_step(page, step, base_dir):
         page.evaluate(step["eval"])
 
 
+def settle(page, timeout_ms=3000):
+    """Espera animações/transições finitas terminarem: print no meio de uma animação de
+    entrada mostra elementos invisíveis (falso "buraco") ou esconde problemas reais."""
+    try:
+        page.wait_for_function(
+            """() => document.getAnimations().filter(a => a.playState === 'running' &&
+                 a.effect && a.effect.getTiming().iterations !== Infinity).length === 0""",
+            timeout=timeout_ms)
+    except Exception:
+        pass  # animação longa demais: segue com o estado atual
+
+
 def slug(s):
     return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-") or "pagina"
 
@@ -239,6 +264,7 @@ def run(public, out, flows_file=None, commit=""):
                         for step in flow.get("steps", []):
                             run_step(page, step, base_dir)
                         page.wait_for_timeout(250)
+                        settle(page)
                         page.screenshot(path=str(out / rec["screenshot"]), full_page=True)
                         res = page.evaluate(CHECK_JS, vp_name == "mobile")
                         rec["issues"] = res["issues"]
