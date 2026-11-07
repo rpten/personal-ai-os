@@ -136,9 +136,9 @@ function renderSugs() {
   const v = tab === "film" ? "Já vi" : "Já li";
   $("recs").innerHTML = cur.map((s, n) => { const k = sugKey(tab, s), st = db.feedback[k]?.status, pr = (a) => `aria-pressed="${st === a}"`;
     return `<article class="rec" style="animation-delay:${n * 60}ms"><div class="rec-head">${cover(s.title, s.year, tab)}<div><h3>${esc(s.title)}</h3><p class="meta">${meta(s)}</p></div></div>
+${s.synopsis ? `<div class="syn"><span class="kicker">Sinopse</span><p>${esc(s.synopsis)}</p></div>` : ""}
 <div class="why"><span class="kicker">Por que você gostaria</span><p>${esc(s.why)}</p></div>
 ${(s.refs || []).length ? `<div><span class="kicker">Do seu histórico</span><p class="refs">${s.refs.map((r) => `<span class="chip">${esc(r.title)}${r.rating ? ` · ${stars(r.rating)}` : ""}</span>`).join("")}</p></div>` : ""}
-${s.synopsis ? `<details class="syn"><summary>Sinopse</summary><p>${esc(s.synopsis)}</p></details>` : ""}
 <div class="acts"><button type="button" class="btn primary" data-n="${n}" data-k="want" ${pr("want")}>${ICO.want}Quero</button><button type="button" class="btn" data-n="${n}" data-k="seen" ${pr("seen")}>${ICO.seen}${v}</button><button type="button" class="btn danger" data-n="${n}" data-k="no" ${pr("no")}>${ICO.no}Não curto</button>
 <button type="button" class="btn chatb" data-n="${n}" data-chat="1" aria-expanded="${openChat === k}">${ICO.chat}${openChat === k ? "Fechar chat" : "Conversar"}</button></div>
 ${openChat === k ? chatBox(k) : ""}</article>`; }).join("");
