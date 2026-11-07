@@ -5,7 +5,7 @@
   "status": "awaiting_milestone_approval",
   "previous_status": "delivered",
   "created_at": "2026-11-05",
-  "updated_at": "2026-11-06",
+  "updated_at": "2026-11-07",
   "discovery": {
     "answers": [
       {
@@ -130,8 +130,8 @@
     "text": "Revisar e mergear o PR do M6 (backlog): https://github.com/rpten/personal-ai-os/pull/10"
   },
   "last_event": {
-    "run_id": "42306974193",
-    "at": "2026-11-06T22:47:38Z",
-    "summary": "PR #8 (M5) mergeado; M6 segue aguardando aprovação no PR #10."
+    "run_id": "42326667510",
+    "at": "2026-11-07T01:57:16Z",
+    "summary": "Retomada: sem ação nova de Rafael; M6 segue aguardando merge do PR #10."
   }
 }
