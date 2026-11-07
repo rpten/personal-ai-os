@@ -127,11 +127,11 @@
   ],
   "next_action": {
     "owner": "rafael",
-    "text": "Revisar e mergear o PR do M6 (backlog): https://github.com/rpten/personal-ai-os/pull/10"
+    "text": "Mergear o PR da Design Capability v1 para ativar a capacidade e iniciar o redesign: https://github.com/rpten/personal-ai-os/pull/11 (o PR do M6 segue aguardando: https://github.com/rpten/personal-ai-os/pull/10)"
   },
   "last_event": {
-    "run_id": "42326667510",
-    "at": "2026-11-07T01:57:16Z",
-    "summary": "Retomada: sem ação nova de Rafael; M6 segue aguardando merge do PR #10."
+    "run_id": "42334486705",
+    "at": "2026-11-07T03:33:20Z",
+    "summary": "Abri o PR #11 da melhoria da fábrica (Design Capability v1), sem alterar o branch."
   }
 }
