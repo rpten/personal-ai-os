@@ -17,7 +17,7 @@ def rules(rep):
 
 def test_pagina_boa_passa(tmp_path):
     rep = visual_qa.run(FX / "good", tmp_path)
-    assert rep["blocking"] == 0, rep
+    assert rep["blocking"] == 0, [(r["viewport"], i) for r in rep["results"] for i in r["issues"]]
     assert (tmp_path / "inicio-mobile.png").exists() and (tmp_path / "inicio-desktop.png").exists()
     assert json.loads((tmp_path / "visual-qa.json").read_text())["blocking"] == 0
 
