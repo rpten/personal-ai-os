@@ -1,0 +1,170 @@
+{
+  "commit": "bf0df7d",
+  "blocking": 0,
+  "warnings": 1,
+  "results": [
+    {
+      "flow": "01-primeiro-acesso",
+      "viewport": "mobile",
+      "screenshot": "01-primeiro-acesso-mobile.png",
+      "issues": [],
+      "page_height": 844
+    },
+    {
+      "flow": "01-primeiro-acesso",
+      "viewport": "desktop",
+      "screenshot": "01-primeiro-acesso-desktop.png",
+      "issues": [],
+      "page_height": 800
+    },
+    {
+      "flow": "02-importacao",
+      "viewport": "mobile",
+      "screenshot": "02-importacao-mobile.png",
+      "issues": [
+        {
+          "severity": "warning",
+          "rule": "sobreposicao",
+          "selector": "#nav > button",
+          "text": "Indicar",
+          "detail": "sobrepõe #export",
+          "count": 4
+        }
+      ],
+      "page_height": 1039
+    },
+    {
+      "flow": "02-importacao",
+      "viewport": "desktop",
+      "screenshot": "02-importacao-desktop.png",
+      "issues": [],
+      "page_height": 913
+    },
+    {
+      "flow": "03-com-dados",
+      "viewport": "mobile",
+      "screenshot": "03-com-dados-mobile.png",
+      "issues": [],
+      "page_height": 844
+    },
+    {
+      "flow": "03-com-dados",
+      "viewport": "desktop",
+      "screenshot": "03-com-dados-desktop.png",
+      "issues": [],
+      "page_height": 800
+    },
+    {
+      "flow": "04-carregando",
+      "viewport": "mobile",
+      "screenshot": "04-carregando-mobile.png",
+      "issues": [],
+      "page_height": 1116
+    },
+    {
+      "flow": "04-carregando",
+      "viewport": "desktop",
+      "screenshot": "04-carregando-desktop.png",
+      "issues": [],
+      "page_height": 1045
+    },
+    {
+      "flow": "05-indicacoes-prontas",
+      "viewport": "mobile",
+      "screenshot": "05-indicacoes-prontas-mobile.png",
+      "issues": [],
+      "page_height": 1923
+    },
+    {
+      "flow": "05-indicacoes-prontas",
+      "viewport": "desktop",
+      "screenshot": "05-indicacoes-prontas-desktop.png",
+      "issues": [],
+      "page_height": 1819
+    },
+    {
+      "flow": "06-chat-aberto",
+      "viewport": "mobile",
+      "screenshot": "06-chat-aberto-mobile.png",
+      "issues": [],
+      "page_height": 2135
+    },
+    {
+      "flow": "06-chat-aberto",
+      "viewport": "desktop",
+      "screenshot": "06-chat-aberto-desktop.png",
+      "issues": [],
+      "page_height": 2016
+    },
+    {
+      "flow": "07-erro-do-worker",
+      "viewport": "mobile",
+      "screenshot": "07-erro-do-worker-mobile.png",
+      "issues": [],
+      "page_height": 844
+    },
+    {
+      "flow": "07-erro-do-worker",
+      "viewport": "desktop",
+      "screenshot": "07-erro-do-worker-desktop.png",
+      "issues": [],
+      "page_height": 800
+    },
+    {
+      "flow": "08-backlog",
+      "viewport": "mobile",
+      "screenshot": "08-backlog-mobile.png",
+      "issues": [],
+      "page_height": 919
+    },
+    {
+      "flow": "08-backlog",
+      "viewport": "desktop",
+      "screenshot": "08-backlog-desktop.png",
+      "issues": [],
+      "page_height": 862
+    },
+    {
+      "flow": "09-backlog-vazio",
+      "viewport": "mobile",
+      "screenshot": "09-backlog-vazio-mobile.png",
+      "issues": [],
+      "page_height": 844
+    },
+    {
+      "flow": "09-backlog-vazio",
+      "viewport": "desktop",
+      "screenshot": "09-backlog-vazio-desktop.png",
+      "issues": [],
+      "page_height": 800
+    },
+    {
+      "flow": "10-gosto",
+      "viewport": "mobile",
+      "screenshot": "10-gosto-mobile.png",
+      "issues": [],
+      "page_height": 1057
+    },
+    {
+      "flow": "10-gosto",
+      "viewport": "desktop",
+      "screenshot": "10-gosto-desktop.png",
+      "issues": [],
+      "page_height": 1073
+    },
+    {
+      "flow": "11-livros-vazio",
+      "viewport": "mobile",
+      "screenshot": "11-livros-vazio-mobile.png",
+      "issues": [],
+      "page_height": 844
+    },
+    {
+      "flow": "11-livros-vazio",
+      "viewport": "desktop",
+      "screenshot": "11-livros-vazio-desktop.png",
+      "issues": [],
+      "page_height": 800
+    }
+  ]
+}
