@@ -71,8 +71,11 @@ jobs:
       group: factory-${{ needs.guard.outputs.slug || 'new' }}
       cancel-in-progress: false
     steps:
+      # Sempre a versão mais recente de main: um merge da fábrica durante a fila
+      # (protocolo, skills) vale já para esta execução.
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:

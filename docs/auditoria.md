@@ -81,10 +81,10 @@ Testes, prints, console e limitações estão em todos os PRs de marco. **Interf
 | Skills auditadas e versionadas | ✅ | `.claude/skills/{frontend-design,ui-ux-pro-max}`, `factory/design/vendor.json`, teste de integridade |
 | Acionada automaticamente | ✅ | descrição da skill `fabrica-design` + `CLAUDE.md` §3 + portão no `verify.py`; uso registrado no ledger |
 | Workflow de 8 passos | ✅ | `.claude/skills/fabrica-design/SKILL.md`, modelos em `factory/templates/` |
-| QA visual automatizado | ✅ | `factory/scripts/visual_qa.py` (3 testes com páginas boas/ruins), portão em `verify.py` (6 testes) |
+| QA visual automatizado | ✅ | `factory/scripts/visual_qa.py` (7 testes), portão em `verify.py` (8 testes) |
 | Julgamento estético | 🟡 | inspeção dos prints pelo agente, registrada e exigida; não é medida automaticamente |
 | Design system por produto | ✅ | `foundation.css` compartilhada + `tokens.css` por app |
-| Piloto (Taste Memory) | ver relatório do PR do redesign | |
+| Piloto (Taste Memory) | ✅ | PR #12: redesign com 11 fluxos × 2 telas, 0 bloqueantes; inspeção independente na sessão de 07/11 |
 
 ### §9 Command Center — 🟡
 Agora tem: totais, **Preciso de você**, cartão por projeto (fase, marcos, último evento, próxima ação), entregas (link do app) e histórico em linguagem humana com falhas. Falta: objetivo no cartão, ações rápidas além de "Nova ideia", releases.

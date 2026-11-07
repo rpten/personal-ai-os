@@ -69,8 +69,10 @@ O que é automático (a cada fluxo, no celular a 390px e no desktop a 1280px):
 | Imagem quebrada ou sem `alt` | Tipografia padrão do sistema sem escolha deliberada |
 | Erro de JavaScript/console | Emoji como ícone; rótulos pequenos em caixa alta |
 | Falta de `meta viewport`; fluxo que não executa | Página com mais de 5 telas no celular |
+| Recurso HTTP que falhou sem ser simulado | |
+| Fim do conteúdo coberto por barra fixa | |
 
-Os fluxos simulam a rede (`routes`) para fotografar estados vazio, carregando (`hold`) e erro sem depender de serviços reais.
+Antes de cada print, o QA espera as animações finitas terminarem (um print no meio de uma animação de entrada mostrava cartões invisíveis). Os fluxos simulam a rede (`routes`) para fotografar estados vazio, carregando (`hold`) e erro sem depender de serviços reais.
 
 **O que não é automático, e por isso é obrigatório no workflow:** hierarquia, composição, ritmo e identidade. Os checks só pegam o que é mensurável: o Taste Memory atual passa com **0 bloqueantes** e ainda assim é visualmente fraco. Esses pontos ficam na inspeção dos prints, registrada no `design-review.md`, que o verificador exige.
 
@@ -87,3 +89,7 @@ Os fluxos simulam a rede (`routes`) para fotografar estados vazio, carregando (`
 - O contraste automático ignora fundos com imagem ou gradiente.
 - O julgamento estético depende do modelo inspecionando prints. O portão garante que a inspeção foi registrada, não que ela é boa. A aprovação final do marco continua sendo de Rafael.
 - O QA visual roda no Chrome do runner. Não cobre Safari/iOS real.
+
+## 7. Histórico
+
+- **v1.1 (07/11):** espera de animações antes do print; regra "conteúdo coberto por barra fixa"; sobreposição ignora elementos fixos; o job do agente sempre usa o `main` mais recente. Motivação: inspeção independente do piloto do Taste Memory.
